@@ -17,9 +17,10 @@ var BLACK = 'black';
  * @param color color of the piece, should be either 'white' or 'black'.
  * @constructor
  */
-function Piece(position, color) {
-    this.position = position;
+function Piece(color, position) {
     this.color = color;
+    this.position = position;
+//    console.log(this.constructor.name+" created at "+ this.position + " for " + this.color);
 }
 
 /**
@@ -53,7 +54,6 @@ function Pawn(position, color) {
     Piece.call(this, position, color);
     this.startPosition = (color === WHITE? 2 : 7);
     this.direction = (color === WHITE? 1 : -1);
-    console.log("pawn positioned at "+this.position +', ' + this.direction + ' for ' + this.color + this.startPosition);
 }
 
 Pawn.prototype.get_path = function(to) {
