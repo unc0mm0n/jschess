@@ -1,3 +1,12 @@
+
+/************************ game.js
+ *
+ * main file of the game.
+ */
+
+WHITE = 'white';
+BLACK = 'black';
+
 var STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
 /** generateBoardFromFen(fen)
@@ -38,3 +47,13 @@ function generateBoardFromFen(fen) {
 }
 
 console.log(generateBoardFromFen(STARTING_FEN));
+var p = new Pawn([1, 2], WHITE);
+console.log(p.get_capture_path([1,4]));
+console.log(p.get_capture_path([1,1]));
+console.log(p.get_capture_path([1,5]));
+console.log(p.get_capture_path([1,3]));
+console.log(p.get_capture_path([2,3]));
+console.log(p.get_capture_path([2,0]));
+console.log(p.get_capture_path([2,2]));
+console.log(p.get_capture_path([0,3]));
+console.log(p.get_capture_path([0,2]));
