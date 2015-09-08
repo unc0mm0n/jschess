@@ -16,44 +16,48 @@ var STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
  */
 function generateBoardFromFen(fen) {
     board = []
-    rows = fen.split(' ')[0].split('/');
+    ranks = fen.split(' ')[0].split('/');
 
-    for (var i=0; i < rows.length; i++) {
+    for (var i=0; i < ranks.length; i++) {
 
-        board_row = [];
-        // get the next row from the array
-        cells = rows[i].split('');
+        board_rank = [];
+        // get the next rank from the array
+        squares = ranks[i].split('');
         
-        for (var j=0; j < cells.length; j++) {
+        for (var j=0; j < squares.length; j++) {
 
             // a number means empty spaces, so if we encounter a number we skip the same number of tiles
-            if (Number(cells[j])) {
-                for (var k=0; k < Number(cells[j]); k++) {
-                    board_row.push(" ");
+            if (Number(squares[j])) {
+                for (var k=0; k < Number(squares[j]); k++) {
+                    board_rank.push(" ");
                 }
             }
 
             // otherwise we just have a piece to add.
             else {
-                board_row.push(cells[j]);
+                board_rank.push(squares[j]);
             }
         }
 
-        // and finally add the row itself to the board
-        board.push(board_row);
+        // and finally add the rank itself to the board
+        board.push(board_rank);
     }
 
     return board;
 }
 
-console.log(generateBoardFromFen(STARTING_FEN));
-var p = new Pawn([1, 2], WHITE);
-console.log(p.get_capture_path([1,4]));
-console.log(p.get_capture_path([1,1]));
-console.log(p.get_capture_path([1,5]));
-console.log(p.get_capture_path([1,3]));
-console.log(p.get_capture_path([2,3]));
-console.log(p.get_capture_path([2,0]));
-console.log(p.get_capture_path([2,2]));
-console.log(p.get_capture_path([0,3]));
-console.log(p.get_capture_path([0,2]));
+var b = new Queen([4,4], WHITE);
+
+console.log(b.get_path([8,8]));
+console.log(b.get_capture_path([8,8]));
+console.log(b.get_capture_path([0,0]));
+console.log(b.get_capture_path([7,1]));
+console.log(b.get_capture_path([1,7]));
+console.log(b.get_capture_path([1,16]));
+console.log(b.get_capture_path([4,4]));
+console.log(b.get_capture_path([4,5]));
+console.log(b.get_capture_path([3,5]));
+console.log(b.get_capture_path([3,3]));
+console.log(b.get_capture_path([6,4]));
+console.log(b.get_capture_path([-3,4]));
+console.log(b.get_capture_path([4,-4]));
