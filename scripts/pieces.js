@@ -6,10 +6,18 @@
  * nN - knight
  * qQ - queen
  * kK - king
+ * This will be the first file to load, thus all constants here are usable in other files.
  ****************/
 
 var WHITE = 'white';
 var BLACK = 'black';
+
+var PAWN = 'P';
+var KNIGHT = 'N';
+var KING = 'K';
+var BISHOP = 'B';
+var ROOK = 'R';
+var QUEEN = 'Q';
 
 /********* Piece class
  * The parent class of all piece types.
@@ -54,6 +62,8 @@ function Pawn(position, color) {
     Piece.call(this, position, color);
     this.startPosition = (color === WHITE? 2 : 7);
     this.direction = (color === WHITE? 1 : -1);
+
+    this.type = PAWN;
 }
 
 Pawn.prototype.get_path = function(to) {
@@ -99,6 +109,8 @@ Knight.prototype = new Piece();
 Knight.prototype.constructor = Knight;
 function Knight(position, color) {
     Piece.call(this, position, color);
+
+    this.type = KNIGHT;
 }
 
 Knight.prototype.get_path = function(to) {
@@ -119,6 +131,8 @@ King.prototype = new Piece();
 King.prototype.constructor = King;
 function King(position, color) {
     Piece.call(this, position, color);
+
+    this.type = KING;
 }
 
 King.prototype.get_path = function(to) {
@@ -146,6 +160,8 @@ Bishop.prototype = new Piece();
 Bishop.prototype.constructor = Bishop;
 function Bishop(position, color) {
     Piece.call(this, position, color);
+
+    this.type = BISHOP;
 }
 
 Bishop.prototype.get_path = function(to) {
@@ -210,6 +226,8 @@ Rook.prototype = new Piece();
 Rook.prototype.constructor = Rook;
 function Rook(position, color) {
     Piece.call(this, position, color);
+
+    this.type = ROOK;
 }
 
 Rook.prototype.get_path = function(to) {
@@ -257,6 +275,8 @@ Queen.prototype = new Piece();
 Queen.prototype.constructor = Queen;
 function Queen(position, color) {
     Piece.call(this, position, color);
+
+    this.type = QUEEN;
 }
 
 Queen.prototype.get_path = function(to) {

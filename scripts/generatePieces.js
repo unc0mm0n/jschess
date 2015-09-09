@@ -1,13 +1,3 @@
-var WHITE = 'white';
-var BLACK = 'black';
-
-var PAWN = 'P';
-var KNIGHT = 'N';
-var KING = 'K';
-var BISHOP = 'B';
-var ROOK = 'R';
-var QUEEN = 'Q';
-
 /**
  * A generator to generate pieces from given fen and return them all in an array.
  */
