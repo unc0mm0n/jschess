@@ -5,6 +5,7 @@
  */
 
 var STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+var PADDING = 30;
 
 var context;
 var canvas;
@@ -20,18 +21,35 @@ function generatePage() {
 
     var gameCanvas = document.createElement('canvas');
     gameCanvas.setAttribute('id', 'gameCanvas');
-    gameCanvas.setAttribute('width', '80%');
-    gameCanvas.setAttribute('height', '80%');
-    gameArea.appendChild(gameCanvas);
-    body.appendChild(gameArea);
+    body.appendChild(gameCanvas);
 
     canvas = gameCanvas;
-    context = canvas.getContext('2D');
+    context = canvas.getContext('2d');
+    console.log(canvas, context);
+}
 
+function resizeCanvas() {
+    var size = Math.min(window.innerWidth, window.innerHeight) - PADDING;
+    canvas.width = size;
+    canvas.height = size;
+    console.log(size);
+    draw();
+}
+
+function draw() {
+
+    context.fillStyle = '#000000';
+    context.fillRect(0,0,canvas.width, canvas.height);
+    context.fill();
+    console.log('filled')
 }
 
 function main() {
     generatePage();
+
+    // resize the canvas to fill browser window dynamically
+    window.addEventListener('resize', resizeCanvas, false);
+    resizeCanvas();
 }
 
 document.addEventListener('load', main());
