@@ -7,6 +7,7 @@
 var STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 var OUTER_PADDING = 30;
 var INNER_PADDING_RATIO = 0.1;
+var GAME_CONTEXT = '2d';
 var LIGHT_SQUARE_COLOR = '#66FF66';
 var DARK_SQUARE_COLOR = '#336600';
 
@@ -14,10 +15,12 @@ var DARK_SQUARE_COLOR = '#336600';
 var ASSETS = ['WKing', 'WQueen', 'WRook', 'WKnight', 'WBishop', 'WPawn',
         'BKing', 'BQueen', 'BRook', 'BKnight', 'BBishop', 'BPawn'];
 
+// dreaded globals.
 var context;
 var canvas;
 var images = {};
 var board;
+var picked_piece;
 
 /**
  * loads all images to the dreaded global space..
@@ -49,62 +52,6 @@ function generatePage() {
 }
 
 /**
- * draws the chess board itself on screen, ignoring the border, and using the global canvas for sizes.
- */
-function drawBoard() {
-    // just iterate over every square of the chess board and fill it with some color, for now..
-    for (var i=1; i <= 8; i++) {
-        for (var j=1; j <= 8; j++) {
-            xy_values = getXyFromBoardPosition([i, j], canvas.board_size);
-            square_size = canvas.board_size/8;
-
-            // bottom left corner is black.. that is how chess works.
-            if ( (i+j) % 2 === 1) {
-                context.fillStyle = LIGHT_SQUARE_COLOR;
-            } else {
-                context.fillStyle = DARK_SQUARE_COLOR;
-            }
-
-            context.fillRect(xy_values[0] + canvas.inner_padding,
-                xy_values[1] + canvas.inner_padding,
-                square_size,
-                square_size);
-        }
-    }
-    drawPieces();
-}
-
-/**
- * draw the pieces on screen, using the global board element as the board and the global canvas for sizes.
- */
-function drawPieces() {
-    for (piece in board.pieces) {
-        if (!board.pieces.hasOwnProperty(piece)) continue;
-
-        // get the location data from the position, as having it as a key
-        // turns it into a string.
-        file = Number(piece[0]);
-        rank = Number(piece[2]);
-
-        // get the coordinates on board accordingly, and calculate the current square size.
-        xy_values = getXyFromBoardPosition([file, rank] ,canvas.board_size);
-        square_size = canvas.board_size / 8;
-
-        piece_type = board.pieces[piece].type;
-        piece_color = board.pieces[piece].color;
-        // use the useful, and terribly written, helper function to get the image name.
-        image_name = getImageFromTypeColor(piece_type, piece_color);
-
-        // draw the image onto the canvas.
-        context.drawImage(images[image_name],
-            xy_values[0]+canvas.inner_padding,
-            xy_values[1]+canvas.inner_padding,
-            square_size,
-            square_size);
-    }
-}
-
-/**
  * just something to make sure the canvas stays relevant.
  */
 function resizeCanvas() {
@@ -131,7 +78,7 @@ function onMouseClick(event) {
     var x = event.clientX - (canvas.offsetLeft - window.pageXOffset) - canvas.inner_padding;
     var y = event.clientY - (canvas.offsetTop - window.pageYOffset) - canvas.inner_padding;
 
-    console.log(getBoardPositionFromXy([x,y], canvas.board_size));
+    position = getBoardPositionFromXy([x,y], canvas.board_size);
 }
 function main() {
     loadImages();
