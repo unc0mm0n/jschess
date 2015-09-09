@@ -10,12 +10,12 @@
  */
 function Board(fen) {
     var pieces = generatePieces(fen);
-    this.pieces = {};
+    this.pieces_by_position = {};
     this.kings = {};
     this.current_turn = fen.split(" ")[1];
     for (var i=0; i < pieces.length; i++) {
         var piece = pieces[i];
-        this.pieces[piece.position] = piece;
+        this.pieces_by_position[piece.position] = piece;
         if (piece.type === KING) {
             this.kings[piece.color] = piece;
         }
@@ -31,13 +31,13 @@ function Board(fen) {
  * @returns {boolean} true if the move was made successfully.
  */
 Board.prototype.makeMove = function(from, to) {
-    piece = this.pieces[from];
+    piece = this.pieces_by_position[from];
     if (!piece) {
         return false
     }
 
-    this.pieces[to] = piece;
-    delete this.pieces[from];
+    this.pieces_by_position[to] = piece;
+    delete this.pieces_by_position[from];
     piece.position = to;
     return true;
 };
@@ -52,8 +52,8 @@ Board.prototype.makeMove = function(from, to) {
  */
 Board.prototype.checkLegalMove = function(from, to, ignore_turn_order) {
     // getting the details of the required squares.
-    var from_piece = this.pieces[from];
-    var to_piece = this.pieces[to];
+    var from_piece = this.pieces_by_position[from];
+    var to_piece = this.pieces_by_position[to];
 
     var path;
     if (!from_piece) {
@@ -85,7 +85,7 @@ Board.prototype.checkLegalMove = function(from, to, ignore_turn_order) {
     }
     // looking at all the elements of the path but the last, as we already know it.
     for (var i=0; i< path.length - 1; i++) {
-        if (this.pieces[path[i]]) return false;
+        if (this.pieces_by_position[path[i]]) return false;
     }
 
     // finally check if no kings were exposed.
@@ -101,15 +101,15 @@ Board.prototype.checkLegalMove = function(from, to, ignore_turn_order) {
 Board.prototype.noChecksAfter = function(from, to) {
 
     // grab the king of the player that moved.
-    var player_color = this.pieces[from].color;
+    var player_color = this.pieces_by_position[from].color;
     var player_king = this.kings[player_color];
-    var king_position = (player_king === this.pieces[from]? to : player_king.position);
+    var king_position = (player_king === this.pieces_by_position[from]? to : player_king.position);
 
     // iterating over the pieces.
-    for (position in this.pieces) {
-        if (!this.pieces.hasOwnProperty(position)) continue; // maybe not necessary...
+    for (position in this.pieces_by_position) {
+        if (!this.pieces_by_position.hasOwnProperty(position)) continue; // maybe not necessary...
 
-        piece = this.pieces[position];
+        piece = this.pieces_by_position[position];
         // same colored pieces can't check the king
         if (piece.color == player_color)  continue;
 
@@ -131,7 +131,7 @@ Board.prototype.noChecksAfter = function(from, to) {
             }
 
             // if the square is occupied by a piece that is not moving, we can move to the next piece
-            if (!(path[i][0] === from[0] && path[i][1] === from[1]) && this.pieces[path[i]]) {
+            if (!(path[i][0] === from[0] && path[i][1] === from[1]) && this.pieces_by_position[path[i]]) {
                 blocked = true;
                 break;
             }
