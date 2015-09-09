@@ -19,6 +19,12 @@ var BISHOP = 'B';
 var ROOK = 'R';
 var QUEEN = 'Q';
 
+var WHITE_KING_START = [5,1];
+var BLACK_KING_START = [5,8];
+
+var WHITE_ROOK_STARTS = [[1,1], [8,1]]; // NOTE THAT ROOK CLASS WILL BREAK IF THESE ARE NOT OF THE SAME LENGTH
+var BLACK_ROOK_STARTS = [[1,8], [8,8]]; // oopsy.
+
 /********* Piece class
  * The parent class of all piece types.
  * @param position position of the piece.
@@ -138,10 +144,14 @@ Knight.prototype.get_path = function(to) {
  */
 King.prototype = Object.create(Piece.prototype);
 King.prototype.constructor = King;
-function King(position, color) {
+function King(position, color, has_moved) {
     Piece.call(this, position, color);
 
     this.type = KING;
+
+    // checks if a special has_moved parameter was given, otherwise set it by starting position.
+    this.has_moved = has_moved?
+            true : (!isSamePosition(position, WHITE_KING_START) && !isSamePosition(position, BLACK_KING_START));
 }
 
 King.prototype.get_path = function(to) {
@@ -233,9 +243,24 @@ Bishop.prototype.get_path = function(to) {
  */
 Rook.prototype = Object.create(Piece.prototype);
 Rook.prototype.constructor = Rook;
-function Rook(position, color) {
+function Rook(position, color, has_moved) {
     Piece.call(this, position, color);
 
+    // checks if a special has_moved parameter was given, otherwise set it by starting position.
+    if (has_moved) {
+        this.has_moved = has_moved;
+    } else {
+        var starting_match = false;
+        for (var i = 0; i < WHITE_ROOK_STARTS; i++) {
+            if (isSamePosition(position, WHITE_ROOK_STARTS[i])) {
+                starting_match = true;
+                break;
+            } else if (isSamePosition(position, BLACK_ROOK_STARTS[i])) {
+                starting_math = true;
+                break;
+            }
+        }
+    }
     this.type = ROOK;
 }
 

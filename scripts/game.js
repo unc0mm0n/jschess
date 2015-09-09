@@ -82,7 +82,6 @@ function onMouseClick(event) {
     var position = getBoardPositionFromXy([x,y], canvas.board_size);
 
     if (picked_piece_position) {
-        console.log('trying to move piece from ', picked_piece_position, 'to', position);
         if (board.checkLegalMove(picked_piece_position, position)) {
             board.makeMove(picked_piece_position, position);
         }

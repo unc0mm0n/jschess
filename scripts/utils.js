@@ -59,7 +59,6 @@ function getImageFromTypeColor(type, color) {
 function generatePieces(fen) {
 
     var piece_array = [];
-
     var ranks = fen.split(' ')[0].split('/');
     for (var i=0; i < ranks.length; i++) {
 
@@ -94,4 +93,15 @@ function generatePiece(letter, position) {
         case QUEEN:
             return new Queen(position, color);
     }
+}
+
+/**
+ *
+ * compares two position arrays (arrays with two integer items). returns
+ * @param one a position array with two numbers.
+ * @param another a second position array with two numbers.
+ * @returns {boolean} true if both arrays contain the same numbers.
+ */
+function isSamePosition(one, another) {
+    return true
 }
