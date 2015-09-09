@@ -55,7 +55,7 @@ function drawBoard() {
     // just iterate over every square of the chess board and fill it with some color, for now..
     for (var i=1; i <= 8; i++) {
         for (var j=1; j <= 8; j++) {
-            xy_values = getBoardPosition([i, j], canvas.board_size);
+            xy_values = getXyFromBoardPosition([i, j], canvas.board_size);
             square_size = canvas.board_size/8;
 
             // bottom left corner is black.. that is how chess works.
@@ -87,7 +87,7 @@ function drawPieces() {
         rank = Number(piece[2]);
 
         // get the coordinates on board accordingly, and calculate the current square size.
-        xy_values = getBoardPosition([file, rank] ,canvas.board_size);
+        xy_values = getXyFromBoardPosition([file, rank] ,canvas.board_size);
         square_size = canvas.board_size / 8;
 
         piece_type = board.pieces[piece].type;
@@ -127,6 +127,12 @@ function draw() {
     drawBoard();
 }
 
+function onMouseClick(event) {
+    var x = event.clientX - (canvas.offsetLeft - window.pageXOffset) - canvas.inner_padding;
+    var y = event.clientY - (canvas.offsetTop - window.pageYOffset) - canvas.inner_padding;
+
+    console.log(getBoardPositionFromXy([x,y], canvas.board_size));
+}
 function main() {
     loadImages();
     generatePage();
@@ -134,6 +140,7 @@ function main() {
 
     // resize the canvas to fill browser window dynamically
     window.addEventListener('resize', resizeCanvas, false);
+    canvas.addEventListener('mousedown', onMouseClick, false);
     resizeCanvas();
 }
 

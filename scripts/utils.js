@@ -8,13 +8,25 @@
  * @param board_size size of the board
  * @returns {*} Array with x position and y position of the top left corner from the start of the board.
  */
-function getBoardPosition(position, board_size) {
+function getXyFromBoardPosition(position, board_size) {
     var segment_size = board_size / 8;
     var row_segment = 8 - position[1];
     var col_segment = position[0] - 1;
     return [segment_size*col_segment, segment_size*row_segment];
 }
 
+/**
+ * The opposite of getXyFromBoardPosition, returns the square on the board the mouseclick was located on.
+ * @param xy_values the location of the click relative to the board.
+ * @param board_size the size of the board.
+ * @returns {number[]} array with file and rank of the square clicked.
+ */
+function getBoardPositionFromXy(xy_values, board_size) {
+    var segment_size = board_size / 8;
+    rank = 8 - Math.floor(xy_values[1] / segment_size) ;
+    file = Math.floor(xy_values[0] / segment_size) + 1;
+    return [file,rank]
+}
 function getImageFromTypeColor(type, color) {
     var result = color[0].toUpperCase();
     switch(type) {
