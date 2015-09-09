@@ -1,0 +1,16 @@
+html {
+    height:100%;
+}
+body {
+    height:98%;
+}
+#gameArea {
+    width: inherit;
+    height: inherit;
+    background-color: antiquewhite;
+}
+
+#gameCanvas {
+    width: inherit;
+    height: inherit;
+}

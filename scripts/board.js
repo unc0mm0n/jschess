@@ -9,12 +9,12 @@
  * @constructor
  */
 function Board(fen) {
-    pieces = generatePieces(fen);
+    var pieces = generatePieces(fen);
     this.pieces = {};
     this.kings = {};
-
+    this.current_turn = fen.split(" ")[1];
     for (var i=0; i < pieces.length; i++) {
-        piece = this.pieces[i];
+        var piece = pieces[i];
         this.pieces[piece.position] = piece;
         if (piece.type === KING) {
             this.kings[piece.color] = piece;
@@ -23,36 +23,66 @@ function Board(fen) {
 
 }
 
+/**
+ * makes a given move on the board, doesn't check for legality!
+ * only confirmation here is that indeed there is a piece at from.
+ * @param from position of the piece to move
+ * @param to position of the target square
+ * @returns {boolean} true if the move was made successfully.
+ */
+Board.prototype.makeMove = function(from, to) {
+    piece = this.pieces[from];
+    if (!piece) {
+        return false
+    }
+
+    this.pieces[to] = piece;
+    delete this.pieces[from];
+    piece.position = to;
+    return true;
+};
+
 /** checkLegalMove(from, to)
  * Checks if a move is legal, using the piece at from, and moving to to.
  * Doesn't check for special rules: En Passant, Castling.
  * @param from square of the piece to move
  * @param to target square of the move
  * @returns {boolean} true if move is legal.
+ * @param ignore_turn_order if passed, checkLegalMove won't check turn order.
  */
-Board.prototype.checkLegalMove = function(from, to) {
+Board.prototype.checkLegalMove = function(from, to, ignore_turn_order) {
     // getting the details of the required squares.
-    from_square = this.pieces[from];
-    to_square = this.pieces[to];
+    var from_piece = this.pieces[from];
+    var to_piece = this.pieces[to];
+
     var path;
-    if (!from_square) {
+    if (!from_piece) {
         // can't make a move from an empty square
         return false;
     }
-    else if (from_square && to_square) {
+    // if we are not ignoring turn orders, we need to make sure the pieces match color.
+    if (!ignore_turn_order && this.current_turn != from_piece.color) {
+        console.log("wrong turn");
+        return false;
+    }
+
+    if (from_piece && to_piece) {
         // If both squares are occupied
-        if (from_square.color === to_square.color) {
+        if (from_piece.color === to_piece.color) {
             // can't capture it's own piece.
             return false;
         } else {
-            path = from_square.get_capture_path(to);
+            path = from_piece.get_capture_path(to);
         }
     }
     else {
     // if we are here, we have a piece we want to move and the target square is empty.
-    path = from_square.get_path(to);
+    path = from_piece.get_path(to);
     }
 
+    if (!path) {
+        return false;
+    }
     // looking at all the elements of the path but the last, as we already know it.
     for (var i=0; i< path.length - 1; i++) {
         if (this.pieces[path[i]]) return false;
@@ -73,16 +103,21 @@ Board.prototype.noChecksAfter = function(from, to) {
     // grab the king of the player that moved.
     var player_color = this.pieces[from].color;
     var player_king = this.kings[player_color];
+    var king_position = (player_king === this.pieces[from]? to : player_king.position);
 
     // iterating over the pieces.
     for (position in this.pieces) {
-        if (!this.pieces.hasOwnProperty(position)) continue;
+        if (!this.pieces.hasOwnProperty(position)) continue; // maybe not necessary...
 
         piece = this.pieces[position];
-        if (piece.color = player_color) continue;
+        // same colored pieces can't check the king
+        if (piece.color == player_color)  continue;
+
+        // if we are capturing the piece it can't check the king
+        if (piece.isAt(to)) continue;
 
         // get the path to the king
-        var path = piece.get_capture_path(player_king.position);
+        var path = piece.get_capture_path(king_position);
         var blocked = false;
 
         // move to next piece if the piece can't reach the king
@@ -90,13 +125,13 @@ Board.prototype.noChecksAfter = function(from, to) {
 
         for (var i=0; i<path.length - 1; i++) {
             // if we are blocking the check from this piece, we can move to the piece
-            if (path[i] === to) {
+            if (path[i][0] === to[0] && path[i][1] === to[1]) {
                 blocked = true;
                 break;
             }
 
             // if the square is occupied by a piece that is not moving, we can move to the next piece
-            if (path[i] != from && this.pieces[path[i]]) {
+            if (!(path[i][0] === from[0] && path[i][1] === from[1]) && this.pieces[path[i]]) {
                 blocked = true;
                 break;
             }
@@ -104,6 +139,7 @@ Board.prototype.noChecksAfter = function(from, to) {
 
         // if there is an empty path to the king, he is in check.
         if (!blocked) {
+            console.log("Check from ", piece.constructor.name, " at ", piece.position);
             return false;
         }
     }

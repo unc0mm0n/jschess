@@ -9,8 +9,8 @@
  * This will be the first file to load, thus all constants here are usable in other files.
  ****************/
 
-var WHITE = 'white';
-var BLACK = 'black';
+var WHITE = 'w';
+var BLACK = 'b';
 
 var PAWN = 'P';
 var KNIGHT = 'N';
@@ -25,10 +25,10 @@ var QUEEN = 'Q';
  * @param color color of the piece, should be either 'white' or 'black'.
  * @constructor
  */
-function Piece(color, position) {
-    this.color = color;
+function Piece(position, color) {
     this.position = position;
-//    console.log(this.constructor.name+" created at "+ this.position + " for " + this.color);
+    this.color = color;
+//  console.log(this.constructor.name+" created at "+ this.position + " for " + this.color);
 }
 
 /**
@@ -52,11 +52,20 @@ Piece.prototype.get_capture_path = function(to) {
     return this.get_path(to);
 };
 
+/**
+ * Compares the position of the piece with given position
+ * @returns {boolean} if the piece is at the given position.
+ */
+
+Piece.prototype.isAt= function(position) {
+  return (this.position[0] === position[0] && this.position[1] == position[1]);
+};
+
 /******* Pawn class
  * Holds the movement of the pawn, refer to Piece for explanations.
  * @type {Piece}
  */
-Pawn.prototype = new Piece();
+Pawn.prototype = Object.create(Piece.prototype);
 Pawn.prototype.constructor = Pawn;
 function Pawn(position, color) {
     Piece.call(this, position, color);
@@ -105,7 +114,7 @@ Pawn.prototype.get_capture_path = function(to) {
  * Holds the movement of the Knight, refer to Piece for explanations.
  * @type {Piece}
  */
-Knight.prototype = new Piece();
+Knight.prototype = Object.create(Piece.prototype);
 Knight.prototype.constructor = Knight;
 function Knight(position, color) {
     Piece.call(this, position, color);
@@ -114,8 +123,8 @@ function Knight(position, color) {
 }
 
 Knight.prototype.get_path = function(to) {
-    h_movement = Math.abs(this.position[0] - to[0]);
-    v_movement = Math.abs(this.position[1] - to[1]);
+    var h_movement = Math.abs(this.position[0] - to[0]);
+    var v_movement = Math.abs(this.position[1] - to[1]);
 
     if ((h_movement === 2 && v_movement === 1) || (h_movement === 1 && v_movement === 2)) {
         return [to];
@@ -127,7 +136,7 @@ Knight.prototype.get_path = function(to) {
  * Holds the movement of the King, refer to Piece for explanations.
  * @type {Piece}
  */
-King.prototype = new Piece();
+King.prototype = Object.create(Piece.prototype);
 King.prototype.constructor = King;
 function King(position, color) {
     Piece.call(this, position, color);
@@ -136,8 +145,8 @@ function King(position, color) {
 }
 
 King.prototype.get_path = function(to) {
-    h_movement = Math.abs(this.position[0] - to[0]);
-    v_movement = Math.abs(this.position[1] - to[1]);
+    var h_movement = Math.abs(this.position[0] - to[0]);
+    var v_movement = Math.abs(this.position[1] - to[1]);
 
     if (h_movement > 1 || v_movement > 1) {
         // if we try to move more then one square in any direction, it's invalid
@@ -156,7 +165,7 @@ King.prototype.get_path = function(to) {
  * Holds the movement of the Bishop, refer to Piece for explanations.
  * @type {Piece}
  */
-Bishop.prototype = new Piece();
+Bishop.prototype = Object.create(Piece.prototype);
 Bishop.prototype.constructor = Bishop;
 function Bishop(position, color) {
     Piece.call(this, position, color);
@@ -166,12 +175,12 @@ function Bishop(position, color) {
 
 Bishop.prototype.get_path = function(to) {
     // Only one diagonal going up (from left to right) will get each value, and the value doesn't change across the diagonal.
-    this_main_diag = this.position[0] - this.position[1];
-    to_main_diag = to[0] - to[1];
+    var this_main_diag = this.position[0] - this.position[1];
+    var to_main_diag = to[0] - to[1];
 
     // Only one diagonal going down will get each value, and the value again stays the same across the diagonal.
-    this_sub_diag = this.position[0] + this.position[1];
-    to_sub_diag = to[0] + to[1];
+    var this_sub_diag = this.position[0] + this.position[1];
+    var to_sub_diag = to[0] + to[1];
 
     var path = [];
     if (this_main_diag === to_main_diag) {
@@ -222,7 +231,7 @@ Bishop.prototype.get_path = function(to) {
  * Holds the movement of the Rook, refer to Piece for explanations.
  * @type {Piece}
  */
-Rook.prototype = new Piece();
+Rook.prototype = Object.create(Piece.prototype);
 Rook.prototype.constructor = Rook;
 function Rook(position, color) {
     Piece.call(this, position, color);
@@ -235,6 +244,7 @@ Rook.prototype.get_path = function(to) {
     // Looking at the XOR of the values to make sure that we indeed move somewhere on a file or rank
     if ( (this.position[0] === to[0]? 1:0) ^ (this.position[1] === to[1]? 1:0)) {
         var path = [];
+        var dist;
         if (this.position[0] > to[0]) {
             // moving left
             dist = this.position[0] - to[0];
@@ -271,7 +281,7 @@ Rook.prototype.get_path = function(to) {
  * Holds the movement of the Queen, refer to Piece for explanations.
  * @type {Piece}
  */
-Queen.prototype = new Piece();
+Queen.prototype = Object.create(Piece.prototype);
 Queen.prototype.constructor = Queen;
 function Queen(position, color) {
     Piece.call(this, position, color);
