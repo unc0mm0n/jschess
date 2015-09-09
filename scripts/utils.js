@@ -7,12 +7,19 @@
  * @param position array with file and rank on the chess board
  * @param board_size size of the board
  * @returns {*} Array with x position and y position of the top left corner from the start of the board.
+ * @param padding optional padding to the coordinates to fit board not positioned at 0,0, expected to be a number or array with two numbers
  */
-function getXyFromBoardPosition(position, board_size) {
+function getXyFromBoardPosition(position, board_size, padding) {
     var segment_size = board_size / 8;
     var row_segment = 8 - position[1];
     var col_segment = position[0] - 1;
-    return [segment_size*col_segment, segment_size*row_segment];
+    if (!padding) {
+        return [segment_size * col_segment, segment_size * row_segment];
+    } else if (Number(padding)) {
+        return [segment_size * col_segment + padding, segment_size * row_segment + padding];
+    } else {
+        return [segment_size * col_segment + padding[0], segment_size * row_segment + padding[1]];
+    }
 }
 
 /**

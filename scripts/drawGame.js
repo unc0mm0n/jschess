@@ -8,7 +8,7 @@ function drawBoard(canvas, board, light_color, dark_color) {
     // just iterate over every square of the chess board and fill it with some color, for now..
     for (var i=1; i <= 8; i++) {
         for (var j=1; j <= 8; j++) {
-            xy_values = getXyFromBoardPosition([i, j], canvas.board_size);
+            xy_values = getXyFromBoardPosition([i, j], canvas.board_size, canvas.inner_padding);
             square_size = canvas.board_size/8;
 
             // bottom left corner is black.. that is how chess works.
@@ -18,8 +18,8 @@ function drawBoard(canvas, board, light_color, dark_color) {
                 context.fillStyle = light_color;
             }
 
-            context.fillRect(xy_values[0] + canvas.inner_padding,
-                xy_values[1] + canvas.inner_padding,
+            context.fillRect(xy_values[0],
+                xy_values[1],
                 square_size,
                 square_size);
         }
@@ -44,7 +44,7 @@ function drawPieces(canvas, board) {
  * @param piece the piece to draw
  * @param board the board
  */
-function drawPiece(canvas, piece, board) {
+function drawPiece(canvas, piece) {
     var context = canvas.getContext(GAME_CONTEXT);
     // get the location data from the position, as having it as a key
     // turns it into a string.
@@ -69,6 +69,18 @@ function drawPiece(canvas, piece, board) {
 /** marks a square with given color
  *
  */
-function markSquare(color) {
-    
+function markSquare(canvas, position, board, color) {
+    var context = canvas.getContext(GAME_CONTEXT);
+    var square_size = canvas.board_size / 8;
+
+    xy_values = getXyFromBoardPosition(position, canvas.board_size, canvas.inner_padding);
+    context.fillStyle = color;
+    context.fillRect(xy_values[0],
+            xy_values[1],
+            square_size,
+            square_size);
+
+    if (board.pieces_by_position[position]) {
+        drawPiece(canvas, board.pieces_by_position[position]);
+    }
 }

@@ -8,8 +8,9 @@ var STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 var OUTER_PADDING = 30;
 var INNER_PADDING_RATIO = 0.1;
 var GAME_CONTEXT = '2d';
-var LIGHT_SQUARE_COLOR = '#66FF66';
-var DARK_SQUARE_COLOR = '#336600';
+var COLOR_LIGHT_SQUARES = '#66FF66';
+var COLOR_DARK_SQUARES = '#336600';
+var COLOR_SELECTED_SQUARE = '#FBB117';
 
 // name of all the files to load. files must be located in data folder and be *.png.
 var ASSETS = ['WKing', 'WQueen', 'WRook', 'WKnight', 'WBishop', 'WPawn',
@@ -20,7 +21,7 @@ var context;
 var canvas;
 var images = {};
 var board;
-var picked_piece;
+var picked_piece_position = null;
 
 /**
  * loads all images to the dreaded global space..
@@ -71,14 +72,28 @@ function draw() {
     context.fillStyle = '#996633';
     context.fillRect(0,0,canvas.width, canvas.height);
 
-    drawBoard();
+    drawBoard(canvas, board, COLOR_LIGHT_SQUARES, COLOR_DARK_SQUARES);
 }
 
 function onMouseClick(event) {
     var x = event.clientX - (canvas.offsetLeft - window.pageXOffset) - canvas.inner_padding;
     var y = event.clientY - (canvas.offsetTop - window.pageYOffset) - canvas.inner_padding;
 
-    position = getBoardPositionFromXy([x,y], canvas.board_size);
+    var position = getBoardPositionFromXy([x,y], canvas.board_size);
+
+    if (picked_piece_position) {
+        console.log('trying to move piece from ', picked_piece_position, 'to', position);
+        if (board.checkLegalMove(picked_piece_position, position)) {
+            board.makeMove(picked_piece_position, position);
+        }
+        picked_piece_position = null;
+        draw();
+    }
+    else if (!picked_piece_position && board.pieces_by_position[position]) {
+        picked_piece_position = position;
+        markSquare(canvas, position, board, COLOR_SELECTED_SQUARE);
+    }
+
 }
 function main() {
     loadImages();

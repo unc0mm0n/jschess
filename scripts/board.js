@@ -12,7 +12,7 @@ function Board(fen) {
     var pieces = generatePieces(fen);
     this.pieces_by_position = {};
     this.kings = {};
-    this.current_turn = fen.split(" ")[1];
+    this.current_player = fen.split(" ")[1];
     for (var i=0; i < pieces.length; i++) {
         var piece = pieces[i];
         this.pieces_by_position[piece.position] = piece;
@@ -31,7 +31,7 @@ function Board(fen) {
  * @returns {boolean} true if the move was made successfully.
  */
 Board.prototype.makeMove = function(from, to) {
-    piece = this.pieces_by_position[from];
+    var piece = this.pieces_by_position[from];
     if (!piece) {
         return false
     }
@@ -39,6 +39,11 @@ Board.prototype.makeMove = function(from, to) {
     this.pieces_by_position[to] = piece;
     delete this.pieces_by_position[from];
     piece.position = to;
+
+    // change to other player's turn.
+    console.log(this.current_player);
+
+    this.current_player = this.current_player === WHITE? BLACK : WHITE;
     return true;
 };
 
@@ -61,7 +66,7 @@ Board.prototype.checkLegalMove = function(from, to, ignore_turn_order) {
         return false;
     }
     // if we are not ignoring turn orders, we need to make sure the pieces match color.
-    if (!ignore_turn_order && this.current_turn != from_piece.color) {
+    if (!ignore_turn_order && this.current_player != from_piece.color) {
         console.log("wrong turn");
         return false;
     }
