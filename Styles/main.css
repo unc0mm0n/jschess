@@ -1,10 +1,8 @@
-html {
-    height:100%;
-}
-body {
-    height:98%;
-}
 
+#gameContainer {
+    width:100%;
+    text-align:center;
+}
 #gameCanvas {
     padding: 0;
     margin: auto;

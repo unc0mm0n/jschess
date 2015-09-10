@@ -40,12 +40,13 @@ function loadImages() {
 function generatePage() {
     // create a canvas populated inside a div
     var body = document.getElementById('body');
-    var gameArea = document.createElement('div');
-    gameArea.setAttribute('id', 'gameArea');
+    var gameContainer = document.createElement('div');
+    gameContainer.setAttribute('id', 'gameContainer');
 
     var gameCanvas = document.createElement('canvas');
     gameCanvas.setAttribute('id', 'gameCanvas');
-    body.appendChild(gameCanvas);
+    gameContainer.appendChild(gameCanvas);
+    body.appendChild(gameContainer);
 
     // and store the canvas and it's context in the dreaded global space
     canvas = gameCanvas;
