@@ -39,9 +39,8 @@ function Board(fen) {
  * makes a given move on the board, doesn't check for legality!
  * only confirmation here is that we are moving a piece. I.e. that
  * there is a piece at from, and that from != to.
- * @param from square of the piece to move
- * @param to square of the target square
  * @returns {boolean} true if the move was made successfully.
+ * @param move a Move object with from square and to square.
  */
 Board.prototype.makeMove = function(move) {
     var from = move.from;
@@ -62,6 +61,36 @@ Board.prototype.makeMove = function(move) {
     return true;
 };
 
+/***
+ * Makes a special move, this can include a number of moves in a row,
+ * removal of a number of pieces at any location, or swapping
+ * pieces for different kind of pieces.
+ * Check utils.SpecialMove for structure
+ * @param specialMove a SpecialMove object containing the information for the move.
+ * @returns {boolean} true if move was made successfully.
+ */
+Board.prototype.makeSpecialMove = function(specialMove) {
+    for (var i=0; i<specialMove.moves.length; i++) {
+        this.makeMove(specialMove.moves[i]);
+    }
+
+    for (i=0; i<specialMove.removes.length; i++) {
+        delete this.pieces_by_square[specialMove.removes[i]];
+    }
+
+    for (i=0; i<specialMove.promotions.length; i++) {
+        this.promotePiece(specialMove.moves[i][0], specialMove[i][1]);
+    }
+
+    // change to other player's turn.
+    this.current_player = this.current_player === WHITE? BLACK : WHITE;
+    return true;
+};
+
+Board.prototype.promotePiece = function(square, new_piece_type) {
+    var piece = this.pieces_by_square[square];
+    this.pieces_by_square[square] = generatePiece(new_piece_type, piece.color, square.file, square.rank);
+};
 /**
  * sets pieces to have moved by fen data.
  * TODO: Required massive improvement, also to facilitate Fisher random in the future
@@ -117,12 +146,4 @@ Board.prototype.setCastlingByFen = function(fen_data) {
             this.pieces_by_square[black_queenside_rook_square].has_moved = true;
         }
     }
-};
-
-/**
- * checks if the move is a legal castle.
- * @returns true if it's a castle, and it's legal.
- */
-Board.prototype.isCastle = function (move) {
-
 };

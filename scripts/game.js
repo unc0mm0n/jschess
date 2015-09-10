@@ -86,7 +86,13 @@ function onMouseClick(event) {
         move = new Move(picked_square, square);
         if (arbiter.isMoveLegal(move, board.current_player)) {
             board.makeMove(move);
+        } else {
+            var specialMove = arbiter.getSpecialMove(move, board.current_player);
+            if (specialMove) {
+                board.makeSpecialMove(specialMove);
+            }
         }
+
         picked_square = null;
         draw();
     }

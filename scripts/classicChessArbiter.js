@@ -145,7 +145,8 @@ ClassicChessArbiter.prototype.kingSafeAfter = function(move) {
 ClassicChessArbiter.prototype.getSpecialMove = function(move, current_player) {
     if (this.board.pieces_by_square[move.from].color !== current_player) return null;
 
-    var castleMove = getCastle(move);
+
+    var castleMove = this.getCastle(move);
     if (castleMove) return castleMove;
 
     // var enPassant = getEnPassant(move, current_player); //TODO
@@ -155,7 +156,7 @@ ClassicChessArbiter.prototype.getSpecialMove = function(move, current_player) {
 ClassicChessArbiter.prototype.getCastle = function(move) {
     var from = move.from;
     var to = move.to;
-    var king = this.pieces_by_square[from];
+    var king = this.board.pieces_by_square[from];
 
     // if we are not dealing with a king or are dealing with a king that moved already, we can't castle.
     if (king.type !== KING || king.has_moved ) {
@@ -169,7 +170,7 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
 
     // if the king is in check right now, we can't castle
     king_in_check = new Move(from, from);
-    if (!this.noChecksAfter(king_in_check)) {
+    if (!this.kingSafeAfter(king_in_check)) {
         return null;
     }
     var rook; // will be used to keep track of the castling rook
@@ -179,7 +180,7 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
     // moving right means kingside castling
     if (from.file < to.file) {
         // get the king side rook.
-        rook = this.pieces_by_square[new Square(8, from.rank)];
+        rook = this.board.pieces_by_square[new Square(8, from.rank)];
         // add two steps to the right to the path.
         path.push(from.getSquareAtOffset(1, 0));
         path.push(to);
@@ -188,14 +189,14 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
     } else {
         // we are moving left, castling queenside (we know that they are not equal)
         // get the queen side rook
-        rook = this.pieces_by_square[new Square(1, from.rank)];
+        rook = this.board.pieces_by_square[new Square(1, from.rank)];
         // add three steps to the left to the path.
         path.push(from.getSquareAtOffset(-1, 0));
         path.push(to);
 
         // also check if there is a piece right next to the rook, as it's not in our path
         var rook_neighbour_square = from.getSquareAtOffset(-3, 0);
-        if (this.pieces_by_square[rook_neighbour_square]) return null;
+        if (this.board.pieces_by_square[rook_neighbour_square]) return null;
 
         new_rook_square = from.getSquareAtOffset(-1, 0);
     }
@@ -208,7 +209,7 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
     // finally we check the path to make sure it's empty, and everything is safe
     for (var i = 0; i < path.length; i++) {
         // if there's a piece there, we can't castle.
-        if (this.pieces_by_square[path[i]]) {
+        if (this.board.pieces_by_square[path[i]]) {
             return null;
         }
         var castle_move = new Move(from, path[i]);
@@ -222,5 +223,5 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
     var king_move = new Move(from, to);
     var rook_move = new Move(rook.square, new_rook_square);
 
-    castle_move = new SpecialMove([king_move, rook_move]);
+    return new SpecialMove([king_move, rook_move]);
 };

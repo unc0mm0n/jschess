@@ -70,17 +70,18 @@ function generatePieces(fen) {
                 file += Number(squares[j]);
                 continue;
             }
-            piece_array.push( generatePiece(squares[j], file, rank));
+            var color = (squares[j] === squares[j].toUpperCase()? WHITE : BLACK);
+            piece_array.push( generatePiece(squares[j], color, file, rank));
             file +=1;
         }
     }
     return piece_array;
 }
-function generatePiece(letter, file, rank) {
-    var color = (letter === letter.toUpperCase()? WHITE : BLACK);
+function generatePiece(type, color, file, rank) {
+
     var square = new Square(file, rank);
-    letter = letter.toUpperCase();
-    switch(letter) {
+    type = type.toUpperCase();
+    switch(type) {
         case PAWN:
             return new Pawn(square, color);
         case KNIGHT:
@@ -165,8 +166,8 @@ function Move(from, to) {
  * @param promotions array of pairs, piece to swap with wanted piece type
  */
 function SpecialMove(moves, removes, promotions) {
-    this.moves = moves;
-    this.removes = removes;
-    this.promotions = promotions;
+    this.moves = moves? moves : [];
+    this.removes = removes? removes : [];
+    this.promotions = promotions? promotions : [];
 }
 
