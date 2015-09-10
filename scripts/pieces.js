@@ -88,14 +88,14 @@ Pawn.prototype.get_path = function(to) {
     }
         // first check if we are moving one squares forward
         if (to.rank === this.square.rank + 1*this.direction) {
-            return [square.getSquareAtOffset(0, 1*this.direction)];
+            return [this.square.getSquareAtOffset(0, 1*this.direction)];
         }
         // otherwise if it's the first move
         else if (this.square.rank === this.startPosition) {
             // and we are moving twice
             if (to.rank === this.square.rank + 2*this.direction) {
-                return [square.getSquareAtOffset(0, 1*this.direction),
-                    square.getSquareAtOffset(0, 2*this.direction)];
+                return [this.square.getSquareAtOffset(0, 1*this.direction),
+                    this.square.getSquareAtOffset(0, 2*this.direction)];
             }
         }
         // if all else fails return null
@@ -203,13 +203,13 @@ Bishop.prototype.get_path = function(to) {
         if (file_distance > 0) {
             // this means we are to the right of the target.
             for (var i = 1; i <= file_distance; i++) {
-                path.push(square.getSquareAtOffset(-i, -i));
+                path.push(this.square.getSquareAtOffset(-i, -i));
             }
 
             return path;
         } else { // otherwise we are left of the target.
             for (i = 1; i <= -file_distance; i++) {
-                path.push(square.getSquareAtOffset(i, i));
+                path.push(this.square.getSquareAtOffset(i, i));
             }
 
             return path;
@@ -220,13 +220,13 @@ Bishop.prototype.get_path = function(to) {
         if (file_distance > 0) {
             // this means we are to the right of the target.
             for (i = 1; i <= file_distance; i++) {
-                path.push(square.getSquareAtOffset(-i, i));
+                path.push(this.square.getSquareAtOffset(-i, i));
             }
 
             return path;
         } else { // otherwise we are left of the target.
             for (i = 1; i <= -file_distance; i++) {
-                path.push(square.getSquareAtOffset(i, -i));
+                path.push(this.square.getSquareAtOffset(i, -i));
             }
 
             return path;
@@ -277,22 +277,22 @@ Rook.prototype.get_path = function(to) {
     if (h_movement > 0) {
         // moving left
         for (var i=1; i <= h_movement; i++) {
-            path.push(square.getSquareAtOffset(-i, 0));
+            path.push(this.square.getSquareAtOffset(-i, 0));
         }
     } else if (h_movement < 0) {
         // moving right
         for (i=1; i <= -h_movement; i++) {
-            path.push(square.getSquareAtOffset(i, 0));
+            path.push(this.square.getSquareAtOffset(i, 0));
         }
     } else if (v_movement > 0) {
         // moving down
         for (i = 1; i <= v_movement; i++) {
-            path.push(square.getSquareAtOffset(0, -i));
+            path.push(this.square.getSquareAtOffset(0, -i));
         }
     } else {
         // as we are guaranteed to have moved in a direction, it must be up.
         for (i = 1 ; i <= -v_movement; i++) {
-            path.push(square.getSquareAtOffset(0, i));
+            path.push(this.square.getSquareAtOffset(0, i));
         }
     }
 

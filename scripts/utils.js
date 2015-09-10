@@ -70,28 +70,29 @@ function generatePieces(fen) {
                 file += Number(squares[j]);
                 continue;
             }
-            piece_array.push( generatePiece(squares[j], [file, rank]));
+            piece_array.push( generatePiece(squares[j], file, rank));
             file +=1;
         }
     }
     return piece_array;
 }
-function generatePiece(letter, position) {
+function generatePiece(letter, file, rank) {
     var color = (letter === letter.toUpperCase()? WHITE : BLACK);
+    var square = new Square(file, rank);
     letter = letter.toUpperCase();
     switch(letter) {
         case PAWN:
-            return new Pawn(position, color);
+            return new Pawn(square, color);
         case KNIGHT:
-            return new Knight(position, color);
+            return new Knight(square, color);
         case KING:
-            return new King(position, color);
+            return new King(square, color);
         case BISHOP:
-            return new Bishop(position, color);
+            return new Bishop(square, color);
         case ROOK:
-            return new Rook(position, color);
+            return new Rook(square, color);
         case QUEEN:
-            return new Queen(position, color);
+            return new Queen(square, color);
     }
 }
 

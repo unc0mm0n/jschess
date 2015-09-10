@@ -88,7 +88,7 @@ function onMouseClick(event) {
         picked_square = null;
         draw();
     }
-    else if (!picked_square && board.pieces_by_position[square]) {
+    else if (!picked_square && board.pieces_by_square[square]) {
         picked_square = square;
         markSquare(canvas, square, board, COLOR_SELECTED_SQUARE);
     }

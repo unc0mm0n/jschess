@@ -32,10 +32,10 @@ function drawBoard(canvas, board, light_color, dark_color) {
  * draw the pieces on screen, using the global board element as the board and the global canvas for sizes.
  */
 function drawPieces(canvas, board) {
-    for (piece in board.pieces_by_position) {
-        if (!board.pieces_by_position.hasOwnProperty(piece)) continue;
+    for (piece in board.pieces_by_square) {
+        if (!board.pieces_by_square.hasOwnProperty(piece)) continue;
 
-        drawPiece(canvas, board.pieces_by_position[piece]);
+        drawPiece(canvas, board.pieces_by_square[piece]);
     }
 }
 
@@ -81,7 +81,7 @@ function markSquare(canvas, square, board, color) {
             square_size,
             square_size);
 
-    if (board.pieces_by_position[square]) {
-        drawPiece(canvas, board.pieces_by_position[square]);
+    if (board.pieces_by_square[square]) {
+        drawPiece(canvas, board.pieces_by_square[square]);
     }
 }
