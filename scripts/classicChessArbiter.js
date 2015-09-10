@@ -2,9 +2,8 @@
  * Created by Yuval on 10/09/2015.
  */
 
-var RESULT_WHITE_WIN = '1-0';
-var RESULT_BLACK_WIN = '0-1';
-var RESULT_DRAW = '0.5-0.5';
+var RESULT_WIN = 'checkmate';
+var RESULT_DRAW = 'draw';
 
 /******* Arbiter object
  * The job of the arbiter is to rule whether moves are legal or not on a board,
@@ -190,15 +189,46 @@ ClassicChessArbiter.prototype.piecesCheckingKing = function(player_color) {
  * @param move a Move with from square and to square.
  * @param player_color the current player to play.
  * @return specialMove a SpecialMove object with the details of the move.
+ * @param game_record record of the game moves, in case any special move needs to look at the past.
  */
-ClassicChessArbiter.prototype.getSpecialMove = function(move, player_color) {
+ClassicChessArbiter.prototype.getSpecialMove = function(move, player_color, game_record) {
     if (this.board.pieces_by_square[move.from].color !== player_color) return null;
 
     var castleMove = this.getCastle(move);
     if (castleMove) return castleMove;
 
-    // var enPassant = getEnPassant(move, player_color); //TODO
-    // var promotion = getPromotion(move, player_color); //TODO
+    var enPassant = this.getEnPassant(move, game_record[game_record.length-1]); //TODO
+    if (enPassant) return enPassant;
+
+    // var promotion = this.getPromotion(move, player_color); //TODO
+};
+
+ClassicChessArbiter.prototype.getEnPassant = function(move, last_move) {
+    var pawn = this.board.pieces_by_square[move.from];
+    if (pawn.type !== PAWN) return null;
+
+    var from = move.from;
+    var to = move.to;
+
+    // make sure it's a pawn trying to capture.
+    if (Math.abs(from.file - to.file) !== 1 || to.rank - from.rank !== pawn.direction) {
+        return null;
+    }
+
+    var enemy_pawn = this.board.pieces_by_square[last_move.to];
+
+    // if it's not a piece, or a piece but not a pawn, or a pawn that haven't moved two squares, we can't take it.
+    if (!enemy_pawn || enemy_pawn.type !== PAWN ||
+        Math.abs(last_move.from.rank - last_move.to.rank) !== 2) {
+        return null;
+    }
+
+    // finally if we are not moving to the square above it (in the pawn's movement direction), we can't take it.
+    if (move.to.rank - last_move.to.rank !== pawn.direction || move.to.file !== last_move.to.file) {
+        return false;
+    }
+
+    return new SpecialMove([move], [last_move.to]);
 };
 
 ClassicChessArbiter.prototype.getCastle = function(move) {
@@ -292,7 +322,7 @@ ClassicChessArbiter.prototype.getResult = function(next_player) {
  * @param on_player the player that might be checkmated.
  */
 ClassicChessArbiter.prototype.isCheckmate = function(on_player) {
-    var king = board.kings[on_player];
+    var king = this.board.kings[on_player];
     // first we check if the king can move.
     if (this.canKingMove(king)) {
         return false;
@@ -320,7 +350,7 @@ ClassicChessArbiter.prototype.isCheckmate = function(on_player) {
 
         for (var j=0; j < path.length; j++) {
             // thus we check if we can block each square
-            console.log(blocking_pieces);
+            blocking_pieces = this.piecesCanReach(path[j], on_player, false);
             if (blocking_pieces.length>0) {
                 can_block = true;
                 break;
@@ -329,7 +359,7 @@ ClassicChessArbiter.prototype.isCheckmate = function(on_player) {
 
         // if we can't block the piece, it's mate
         if (!can_block) {
-            return getEnemy(on_player);
+            return RESULT_WIN;
         }
     }
     return false;
