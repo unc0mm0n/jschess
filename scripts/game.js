@@ -133,7 +133,7 @@ function main() {
 
     arbiter = new ClassicChessArbiter();
     board = new Board(arbiter.STARTING_FEN);
-    arbiter.observeBoard(board);
+    gameManager = new GameManager(board, arbiter);
     result = null;
 
     // resize the canvas to fill browser window dynamically
