@@ -76,16 +76,22 @@ Board.prototype.makeSpecialMove = function(specialMove) {
         delete this.pieces_by_square[specialMove.removes[i]];
     }
 
-    for (i=0; i<specialMove.promotions.length; i++) {
-        this.promotePiece(specialMove.moves[i][0], specialMove[i][1]);
+    for (i=0; i<specialMove.insertions.length; i++) {
+        this.insertPiece(specialMove.insertions[i][0],
+            specialMove.insertions[i][1],
+            specialMove.insertions[i][2]);
     }
 
     return true;
 };
-
-Board.prototype.promotePiece = function(square, new_piece_type) {
-    var piece = this.pieces_by_square[square];
-    this.pieces_by_square[square] = generatePiece(new_piece_type, piece.color, square.file, square.rank);
+/**
+ * Puts a new piece of given color on given square, will delete existing piece on the square
+ * @param square
+ * @param new_piece_type
+ */
+Board.prototype.insertPiece = function(square, new_piece_type, new_piece_color) {
+    delete this.pieces_by_square[square];
+    this.pieces_by_square[square] = generatePiece(new_piece_type, new_piece_color, square.file, square.rank);
 };
 /**
  * sets pieces to have moved by fen data.

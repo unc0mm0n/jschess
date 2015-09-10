@@ -197,15 +197,47 @@ ClassicChessArbiter.prototype.getSpecialMove = function(move, player_color, game
     var castleMove = this.getCastle(move);
     if (castleMove) return castleMove;
 
-    var enPassant = this.getEnPassant(move, game_record[game_record.length-1]); //TODO
+    var enPassant = this.getEnPassant(move, game_record[game_record.length-1]);
     if (enPassant) return enPassant;
 
-    // var promotion = this.getPromotion(move, player_color); //TODO
+    var promotion = this.getPromotion(move);
+    if (promotion) return promotion;
+
+    return null;
 };
 
+/**
+ * Returns a SpecialMove object with the promotion move if the given move is a legal promotion.
+ * @param move A Move object with the move to make.
+ * @returns {*} a SpecialMove object if a special move was made, null otherwise.
+ */
+ClassicChessArbiter.prototype.getPromotion = function(move) {
+    var pawn = this.board.pieces_by_square[move.from];
+    if (pawn.type !== PAWN) return null;
+
+    if (!this.isMoveLegal(move, pawn.color)) {
+        return false;
+    }
+    var target_rank = (pawn.direction + 1) * 3.5 + 1; // some wizardry to turn -1/1 to 1/8;
+    if (move.to.rank === target_rank) {
+        return new SpecialMove([move], null, [[move.to, QUEEN, pawn.color]]); //TODO: Prompt user for piece.
+    }
+};
+
+/**
+ * Returns a SpecialMove object with the En Passant move if the given move is a legal En Passant.
+ * @param move A Move object with the move to make.
+ * @param last_move A Move object with the last move that was made.
+ * @returns {*} a SpecialMove object if a special move was made, null otherwise.
+ */
 ClassicChessArbiter.prototype.getEnPassant = function(move, last_move) {
     var pawn = this.board.pieces_by_square[move.from];
     if (pawn.type !== PAWN) return null;
+
+    // can't be En Passant in the first move of the game
+    if (!last_move) {
+        return false;
+    }
 
     var from = move.from;
     var to = move.to;
@@ -225,7 +257,7 @@ ClassicChessArbiter.prototype.getEnPassant = function(move, last_move) {
 
     // finally if we are not moving to the square above it (in the pawn's movement direction), we can't take it.
     if (move.to.rank - last_move.to.rank !== pawn.direction || move.to.file !== last_move.to.file) {
-        return false;
+        return null;
     }
 
     return new SpecialMove([move], [last_move.to]);

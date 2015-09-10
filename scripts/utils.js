@@ -176,11 +176,11 @@ function Move(from, to) {
  * Might be a bit of an overkill, but I prefer an array of moves over an array of arrays of squares.
  * @param moves array of moves to make
  * @param removes array of squares to remove pieces from
- * @param promotions array of pairs, piece to swap with wanted piece type
+ * @param insertions array of triplets, square to insert, wanted piece type, and piece color.
  */
-function SpecialMove(moves, removes, promotions) {
+function SpecialMove(moves, removes, insertions) {
     this.moves = moves? moves : [];
     this.removes = removes? removes : [];
-    this.promotions = promotions? promotions : [];
+    this.insertions = insertions? insertions : [];
 }
 

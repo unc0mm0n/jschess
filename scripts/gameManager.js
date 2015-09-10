@@ -23,8 +23,19 @@ function GameManager(arbiter, fen) {
  *
  */
 GameManager.prototype.makeMove = function(move) {
-    // if it's a legal normal move.
-    if (this.arbiter.isMoveLegal(move, this.players[0])) {
+
+    var specialMove = this.arbiter.getSpecialMove(move, this.players[0], this.game_record);
+
+    if (specialMove) { // first we check if it's a special move.
+        this.board.makeSpecialMove(specialMove);
+        // record it
+        this.game_record.push(specialMove);
+        // switch to next player
+        this.players.push(this.players.shift());
+        // and check for game end.
+        this.result = this.arbiter.getResult(this.players[0]);
+
+    } else if (this.arbiter.isMoveLegal(move, this.players[0])) { // otherwise if it's a normal move
         // do it.
         this.board.makeMove(move);
         // record it.
@@ -34,21 +45,6 @@ GameManager.prototype.makeMove = function(move) {
         // check if game is over.
         this.result = this.arbiter.getResult(this.players[0]);
 
-    } else { // otherwise check if it's a special move by the game rules.
-        var specialMove = this.arbiter.getSpecialMove(move, this.players[0], this.game_record);
-
-        if (specialMove) { // and play it if it is.
-            this.board.makeSpecialMove(specialMove);
-            // record it
-
-            this.game_record.push(specialMove);
-            // switch to next player
-
-            this.players.push(this.players.shift());
-
-            // and check for game end.
-            this.result = this.arbiter.getResult(this.players[0]);
-        }
     }
 };
 
