@@ -30,7 +30,7 @@ function loadImages() {
     for (i = 0; i < ASSETS.length; i++) {
         images[ASSETS[i]] = new Image();
         images[ASSETS[i]].onload = function() {draw()};
-        images[ASSETS[i]].src = "data\\" + ASSETS[i] + ".png";
+        images[ASSETS[i]].src = "images\\" + ASSETS[i] + ".png";
     }
 }
 
