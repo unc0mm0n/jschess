@@ -90,17 +90,22 @@ function onMouseClick(event) {
 
     if (picked_square) { // if we already picked a piece, move it.
         move = new Move(picked_square, square);
+
+        // if it's a legal normal move.
         if (arbiter.isMoveLegal(move, board.current_player)) {
+            // do it and check for game end.
             board.makeMove(move);
-        } else {
+            result = arbiter.getResult(move);
+        } else { // otherwise check if it's a special move by the game rules.
             var specialMove = arbiter.getSpecialMove(move, board.current_player);
-            if (specialMove) {
+            if (specialMove) { // and play it if it is.
                 board.makeSpecialMove(specialMove);
+                // and check for game end.
+                result = arbiter.getResult(move);
             }
         }
 
         picked_square = null;
-        result = arbiter.getResult(board.current_player);
         draw();
 
         if (result)updateResult(result);

@@ -42,7 +42,7 @@ function Piece(square, color) {
  * @param to target square.
  */
 
-Piece.prototype.get_path = function(to) {
+Piece.prototype.getPath = function(to) {
     return null;
 };
 
@@ -53,8 +53,8 @@ Piece.prototype.get_path = function(to) {
  * @param to target square.
  */
 
-Piece.prototype.get_capture_path = function(to) {
-    return this.get_path(to);
+Piece.prototype.getCapturePath = function(to) {
+    return this.getPath(to);
 };
 
 /**
@@ -80,7 +80,7 @@ function Pawn(square, color) {
     this.type = PAWN;
 }
 
-Pawn.prototype.get_path = function(to) {
+Pawn.prototype.getPath = function(to) {
     if (this.square.file != to.file) {
         // if we are moving to a different file, illegal move.
         return null;
@@ -102,7 +102,7 @@ Pawn.prototype.get_path = function(to) {
 };
 
 
-Pawn.prototype.get_capture_path = function(to) {
+Pawn.prototype.getCapturePath = function(to) {
     if (Math.abs(this.square.file - to.file) != 1) {
         // if we are not moving exactly one file, illegal move.
         return null;
@@ -127,7 +127,7 @@ function Knight(square, color) {
     this.type = KNIGHT;
 }
 
-Knight.prototype.get_path = function(to) {
+Knight.prototype.getPath = function(to) {
     var h_movement = Math.abs(this.square.file - to.file);
     var v_movement = Math.abs(this.square.rank - to.rank);
 
@@ -153,7 +153,7 @@ function King(square, color, has_moved) {
             true : (!square.equals(WHITE_KING_START) && !square.equals(BLACK_KING_START));
 }
 
-King.prototype.get_path = function(to) {
+King.prototype.getPath = function(to) {
     var h_movement = Math.abs(this.square.file - to.file);
     var v_movement = Math.abs(this.square.rank - to.rank);
 
@@ -182,7 +182,7 @@ function Bishop(square, color) {
     this.type = BISHOP;
 }
 
-Bishop.prototype.get_path = function(to) {
+Bishop.prototype.getPath = function(to) {
     // Only one diagonal going up (from left to right) will get each value, and the value doesn't change across the diagonal.
     var this_main_diag = this.square.file - this.square.rank;
     var to_main_diag = to.file - to.rank;
@@ -262,7 +262,7 @@ function Rook(square, color, has_moved) {
     this.type = ROOK;
 }
 
-Rook.prototype.get_path = function(to) {
+Rook.prototype.getPath = function(to) {
     // Easier than the bishop as we don't need the diagonal tricks, otherwise pretty similar
     var v_movement = this.square.rank - to.rank;
     var h_movement = this.square.file - to.file;
@@ -310,9 +310,9 @@ function Queen(position, color) {
     this.type = QUEEN;
 }
 
-Queen.prototype.get_path = function(to) {
+Queen.prototype.getPath = function(to) {
     // we will just reuse our effort from the rook and bishop.
-    var rook_path = Rook.prototype.get_path.call(this, to);
-    return rook_path? rook_path: Bishop.prototype.get_path.call(this,to);
+    var rook_path = Rook.prototype.getPath.call(this, to);
+    return rook_path? rook_path: Bishop.prototype.getPath.call(this,to);
 
 };

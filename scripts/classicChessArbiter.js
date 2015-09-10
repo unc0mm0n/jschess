@@ -64,12 +64,12 @@ ClassicChessArbiter.prototype.isMoveLegal = function(move, current_player){
             // can't capture it's own piece.
             return false;
         } else {
-            path = from_piece.get_capture_path(to);
+            path = from_piece.getCapturePath(to);
         }
     }
     else {
         // if we are here, we have a piece we want to move and the target square is empty.
-        path = from_piece.get_path(to);
+        path = from_piece.getPath(to);
     }
 
     if (!path) {
@@ -110,7 +110,7 @@ ClassicChessArbiter.prototype.kingSafeAfter = function(move) {
         if (piece.isAt(to)) continue;
 
         // get the path to the king
-        var path = piece.get_capture_path(king_position);
+        var path = piece.getCapturePath(king_position);
         var blocked = false;
 
         // move to next piece if the piece can't reach the king
@@ -141,49 +141,67 @@ ClassicChessArbiter.prototype.kingSafeAfter = function(move) {
 };
 
 /**
- * checks if the the king of the current player to move is in check.
- * @param current_player_color color of the current player to move.
- * @returns true if the king is in check.
+ * Returns the squares of all of player's pieces that can reach target square.
+ * @param target_square Square object to reach.
+ * @param player_color color of the player to check
+ * @param is_capture if true, will check pieces' capture_path instead of normal path.
+ * @returns the Square of all of the pieces that can reach target square.
  */
-ClassicChessArbiter.prototype.currentKingInCheck = function(current_player_color) {
-    // this is pretty similar to this.kingSafeAfter, but easier as we don't need to take a move into account.
+ClassicChessArbiter.prototype.piecesCanReach = function(target_square, player_color, is_capture) {
 
-    // grab the square of the current player's king
-    var king_position = this.board.kings[current_player_color].square;
-
+    var piece_squares = [];
     // iterating over the pieces.
     for (square in this.board.pieces_by_square) {
         if (!this.board.pieces_by_square.hasOwnProperty(square)) continue; // maybe not necessary...
 
         var piece = this.board.pieces_by_square[square];
-        // same colored pieces can't check the king
-        if (piece.color == current_player_color) continue;
 
-        // get the path to the king
-        var path = piece.get_capture_path(king_position);
+        // make sure the color is the color of the player we want
+        if (piece.color !== player_color) continue;
+
+        // get the path to the target square
+        var path = is_capture? piece.getCapturePath(target_square): piece.getPath(target_square);
+
         var blocked = false;
-
-        // move to next piece if the piece can't reach the king
+        // move to next piece if the piece can't reach.
         if (!path) continue;
 
         for (var i=0; i<path.length - 1; i++) {
-
-            // if the square is occupied by a piece, we can move to the next piece
+            // for all squares on the way.
+            // if the square is occupied by a piece, we can move to the next piece.
             if (this.board.pieces_by_square[path[i]]) {
                 blocked = true;
                 break;
             }
         }
 
-        // if there is an empty path to the king, he is in check.
+        // if we are not capturing, we also need to make sure the target square is empty.
+        if (!is_capture && this.board.pieces_by_square[path[path.length-1]]) {
+            blocked = true;
+            break;
+        }
+
+        // if there is an empty path, we can move.
         if (!blocked) {
-            console.log('piece not blocked!', piece);
-            return true;
+            piece_squares.push(piece.square);
         }
     }
 
-    // if, after checking all the pieces, no piece has an empty path to the king, the king is safe.
-    return false;
+    // if, after checking all the pieces, no piece has an empty path then, well, you know..
+    return piece_squares;
+};
+
+/**
+ * Checks if any pieces are checking the piece of given player
+ * @param player_color color of the current player to move.
+ * @returns an array of the pieces that can check the king.
+ */
+ClassicChessArbiter.prototype.piecesCheckingKing = function(player_color) {
+
+    // grab the square of the current player's king
+    var king_position = this.board.kings[player_color].square;
+    var enemy_color = player_color === WHITE? BLACK : WHITE;
+    return this.piecesCanReach(king_position, enemy_color, true);
 };
 
 /**
@@ -220,7 +238,7 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
     }
 
     // if the king is in check right now, we can't castle
-    if (this.currentKingInCheck(king.color)) {
+    if (this.piecesCheckingKing(king.color).length > 0) {
         return null;
     }
     var rook; // will be used to keep track of the castling rook
@@ -278,12 +296,16 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
 
 /**
  * returns a result if the game is over
+ * @param last_move last move that was played on the board.
  * @returns result if the game is over
  */
-ClassicChessArbiter.prototype.getResult = function(current_player_color) {
-    if (this.currentKingInCheck(current_player_color)) {
-        return isCheckmate(current_player_color);
+ClassicChessArbiter.prototype.getResult = function(last_move) {
+    if (this.piecesCheckingKing(board.current_player)) { // TODO: find a way to refactor the current player, and remove this coupling.
+        return this.isCheckmate(last_move);
     } else {
-        return isStalemate(current_player_color);
+        //return isStalemate(current_player_color); // TODO: Find how to implement this at least semi-efficiently.
     }
+};
+
+ClassicChessArbiter.prototype.isCheckmate = function(last_move) {
 };
