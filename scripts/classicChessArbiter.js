@@ -1,6 +1,11 @@
 /**
  * Created by Yuval on 10/09/2015.
  */
+
+var RESULT_WHITE_WIN = '1-0';
+var RESULT_BLACK_WIN = '0-1';
+var RESULT_DRAW = '0.5-0.5';
+
 /******* Arbiter object
  * The job of the arbiter is to rule whether moves are legal or not on a board,
  * to set up the initial position, to decide whether a game is over or not,
@@ -136,6 +141,52 @@ ClassicChessArbiter.prototype.kingSafeAfter = function(move) {
 };
 
 /**
+ * checks if the the king of the current player to move is in check.
+ * @param current_player_color color of the current player to move.
+ * @returns true if the king is in check.
+ */
+ClassicChessArbiter.prototype.currentKingInCheck = function(current_player_color) {
+    // this is pretty similar to this.kingSafeAfter, but easier as we don't need to take a move into account.
+
+    // grab the square of the current player's king
+    var king_position = this.board.kings[current_player_color].square;
+
+    // iterating over the pieces.
+    for (square in this.board.pieces_by_square) {
+        if (!this.board.pieces_by_square.hasOwnProperty(square)) continue; // maybe not necessary...
+
+        var piece = this.board.pieces_by_square[square];
+        // same colored pieces can't check the king
+        if (piece.color == current_player_color) continue;
+
+        // get the path to the king
+        var path = piece.get_capture_path(king_position);
+        var blocked = false;
+
+        // move to next piece if the piece can't reach the king
+        if (!path) continue;
+
+        for (var i=0; i<path.length - 1; i++) {
+
+            // if the square is occupied by a piece, we can move to the next piece
+            if (this.board.pieces_by_square[path[i]]) {
+                blocked = true;
+                break;
+            }
+        }
+
+        // if there is an empty path to the king, he is in check.
+        if (!blocked) {
+            console.log('piece not blocked!', piece);
+            return true;
+        }
+    }
+
+    // if, after checking all the pieces, no piece has an empty path to the king, the king is safe.
+    return false;
+};
+
+/**
  * returns a special moves object if the move is a special move.
  * See utils.SpecialMove for details.
  * @param move a Move with from square and to square.
@@ -169,8 +220,7 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
     }
 
     // if the king is in check right now, we can't castle
-    king_in_check = new Move(from, from);
-    if (!this.kingSafeAfter(king_in_check)) {
+    if (this.currentKingInCheck(king.color)) {
         return null;
     }
     var rook; // will be used to keep track of the castling rook
@@ -224,4 +274,16 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
     var rook_move = new Move(rook.square, new_rook_square);
 
     return new SpecialMove([king_move, rook_move]);
+};
+
+/**
+ * returns a result if the game is over
+ * @returns result if the game is over
+ */
+ClassicChessArbiter.prototype.getResult = function(current_player_color) {
+    if (this.currentKingInCheck(current_player_color)) {
+        return isCheckmate(current_player_color);
+    } else {
+        return isStalemate(current_player_color);
+    }
 };

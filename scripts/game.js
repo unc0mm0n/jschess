@@ -76,13 +76,19 @@ function draw() {
     drawBoard(canvas, board, COLOR_LIGHT_SQUARES, COLOR_DARK_SQUARES);
 }
 
+/**
+ * handles mouse events as long as the game runs
+ * @param event the mouse event.
+ */
 function onMouseClick(event) {
+
+    if (result) return;
     var x = event.clientX - (canvas.offsetLeft - window.pageXOffset) - canvas.inner_padding;
     var y = event.clientY - (canvas.offsetTop - window.pageYOffset) - canvas.inner_padding;
 
     var square = getSquareFromXy([x,y], canvas.board_size);
 
-    if (picked_square) {
+    if (picked_square) { // if we already picked a piece, move it.
         move = new Move(picked_square, square);
         if (arbiter.isMoveLegal(move, board.current_player)) {
             board.makeMove(move);
@@ -94,14 +100,26 @@ function onMouseClick(event) {
         }
 
         picked_square = null;
+        result = arbiter.getResult(board.current_player);
         draw();
-    }
+
+        if (result)updateResult(result);
+    } // if we haven't picked a piece yet, but we can pick a piece, do so.
     else if (!picked_square && board.pieces_by_square[square]) {
-        picked_square = square;
-        markSquare(canvas, square, board, COLOR_SELECTED_SQUARE);
+        if (board.pieces_by_square[square].color == board.current_player) {
+            picked_square = square;
+            markSquare(canvas, square, board, COLOR_SELECTED_SQUARE);
+        }
     }
+}
+/**
+ * updates the result to the screen.
+ * @param result result of the game
+ */
+function updateResult(result) {
 
 }
+
 function main() {
     loadImages();
     generatePage();
@@ -109,6 +127,7 @@ function main() {
     arbiter = new ClassicChessArbiter();
     board = new Board(arbiter.STARTING_FEN);
     arbiter.observeBoard(board);
+    result = null;
 
     // resize the canvas to fill browser window dynamically
     window.addEventListener('resize', resizeCanvas, false);
