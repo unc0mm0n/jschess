@@ -19,8 +19,7 @@ var ASSETS = ['WKing', 'WQueen', 'WRook', 'WKnight', 'WBishop', 'WPawn',
 var context;
 var canvas;
 var images = {};
-var board;
-var arbiter;
+var gameManager;
 
 var picked_square = null;
 
@@ -73,27 +72,9 @@ function draw() {
     context.fillStyle = '#996633';
     context.fillRect(0,0,canvas.width, canvas.height);
 
-    drawBoard(canvas, board, COLOR_LIGHT_SQUARES, COLOR_DARK_SQUARES);
+    drawBoard(canvas, gameManager.board, COLOR_LIGHT_SQUARES, COLOR_DARK_SQUARES);
 }
 
-/**
- *
- */
-function make_move(move) {
-    // if it's a legal normal move.
-    if (arbiter.isMoveLegal(move, board.current_player)) {
-        // do it and check for game end.
-        board.makeMove(move);
-        result = arbiter.getResult(board.current_player);
-    } else { // otherwise check if it's a special move by the game rules.
-        var specialMove = arbiter.getSpecialMove(move, board.current_player);
-        if (specialMove) { // and play it if it is.
-            board.makeSpecialMove(specialMove);
-            // and check for game end.
-            result = arbiter.getResult(board.current_player);
-        }
-    }
-}
 /**
  *
  * handles mouse events as long as the game runs
@@ -101,40 +82,36 @@ function make_move(move) {
  */
 function onMouseClick(event) {
 
-    if (result) return;
     var x = event.clientX - (canvas.offsetLeft - window.pageXOffset) - canvas.inner_padding;
     var y = event.clientY - (canvas.offsetTop - window.pageYOffset) - canvas.inner_padding;
 
     var square = getSquareFromXy([x,y], canvas.board_size);
 
     if (picked_square) { // if we already picked a piece, move it.
-        make_move(new Move(picked_square, square));
+        gameManager.makeMove(new Move(picked_square, square));
         picked_square = null;
         draw();
     } // if we haven't picked a piece yet, but we can pick a piece, do so.
-    else if (!picked_square && board.pieces_by_square[square]) {
-        if (board.pieces_by_square[square].color == board.current_player) {
-            picked_square = square;
-            markSquare(canvas, square, board, COLOR_SELECTED_SQUARE);
-        }
+    else if (!picked_square && gameManager.canPickSquare(square)) {
+        picked_square = square;
+        markSquare(canvas, square, gameManager.board, COLOR_SELECTED_SQUARE);
     }
+    if (gameManager.isOver()) updateGameOver();
 }
 /**
  * updates the result to the screen.
- * @param result result of the game
  */
-function updateResult(result) {
-    window.alert(result+' won');
+function updateGameOver() {
+    window.alert(gameManager.result);
+    console.log(gameManager.game_record);
 }
 
 function main() {
     loadImages();
     generatePage();
 
-    arbiter = new ClassicChessArbiter();
-    board = new Board(arbiter.STARTING_FEN);
-    gameManager = new GameManager(board, arbiter);
-    result = null;
+    var arbiter = new ClassicChessArbiter();
+    gameManager = new GameManager(arbiter, arbiter.STARTING_FEN);
 
     // resize the canvas to fill browser window dynamically
     window.addEventListener('resize', resizeCanvas, false);

@@ -8,13 +8,13 @@ var BLACK_CASTLE_KING = 'k';
 var BLACK_CASTLE_QUEEN = 'q';
 var NO_CASTLES = '-';
 
-/******* Board class
- * Creates a chess board from given fen. This class
- * handles making moves and holding the current state of the board
- * @param fen the fen of the starting position of the board
- * @constructor
- */
 function Board(fen) {
+    /******* Board class
+     * Creates a chess board from given fen. This class
+     * handles making moves and holding the current state of the board
+     * @param fen the fen of the starting position of the board
+     * @constructor
+     */
     var pieces = generatePieces(fen);
 
     // puts all pieces into the pieces_by_square object, which we
@@ -31,7 +31,8 @@ function Board(fen) {
     }
 
     var fen_data = fen.split(" ");
-    this.current_player = fen_data[1];
+
+    this.players = fen_data[1] === WHITE? [WHITE, BLACK] : [BLACK, WHITE];
     this.setCastlingByFen(fen_data[2]);
 }
 
@@ -54,9 +55,6 @@ Board.prototype.makeMove = function(move) {
     delete this.pieces_by_square[from];
     piece.square = to;
     piece.has_moved = true;
-
-    // change to other player's turn.
-    this.current_player = getEnemy(this.current_player);
 
     return true;
 };
@@ -82,8 +80,6 @@ Board.prototype.makeSpecialMove = function(specialMove) {
         this.promotePiece(specialMove.moves[i][0], specialMove[i][1]);
     }
 
-    // change to other player's turn.
-    this.current_player = this.current_player === WHITE? BLACK : WHITE;
     return true;
 };
 
