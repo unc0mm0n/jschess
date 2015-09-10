@@ -56,7 +56,7 @@ Board.prototype.makeMove = function(move) {
     piece.has_moved = true;
 
     // change to other player's turn.
-    this.current_player = this.current_player === WHITE? BLACK : WHITE;
+    this.current_player = getEnemy(this.current_player);
 
     return true;
 };

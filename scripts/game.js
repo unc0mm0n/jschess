@@ -77,6 +77,25 @@ function draw() {
 }
 
 /**
+ *
+ */
+function make_move(move) {
+    // if it's a legal normal move.
+    if (arbiter.isMoveLegal(move, board.current_player)) {
+        // do it and check for game end.
+        board.makeMove(move);
+        result = arbiter.getResult(board.current_player);
+    } else { // otherwise check if it's a special move by the game rules.
+        var specialMove = arbiter.getSpecialMove(move, board.current_player);
+        if (specialMove) { // and play it if it is.
+            board.makeSpecialMove(specialMove);
+            // and check for game end.
+            result = arbiter.getResult(board.current_player);
+        }
+    }
+}
+/**
+ *
  * handles mouse events as long as the game runs
  * @param event the mouse event.
  */
@@ -89,26 +108,9 @@ function onMouseClick(event) {
     var square = getSquareFromXy([x,y], canvas.board_size);
 
     if (picked_square) { // if we already picked a piece, move it.
-        move = new Move(picked_square, square);
-
-        // if it's a legal normal move.
-        if (arbiter.isMoveLegal(move, board.current_player)) {
-            // do it and check for game end.
-            board.makeMove(move);
-            result = arbiter.getResult(move);
-        } else { // otherwise check if it's a special move by the game rules.
-            var specialMove = arbiter.getSpecialMove(move, board.current_player);
-            if (specialMove) { // and play it if it is.
-                board.makeSpecialMove(specialMove);
-                // and check for game end.
-                result = arbiter.getResult(move);
-            }
-        }
-
+        make_move(new Move(picked_square, square));
         picked_square = null;
         draw();
-
-        if (result)updateResult(result);
     } // if we haven't picked a piece yet, but we can pick a piece, do so.
     else if (!picked_square && board.pieces_by_square[square]) {
         if (board.pieces_by_square[square].color == board.current_player) {
@@ -122,7 +124,7 @@ function onMouseClick(event) {
  * @param result result of the game
  */
 function updateResult(result) {
-
+    window.alert(result+' won');
 }
 
 function main() {

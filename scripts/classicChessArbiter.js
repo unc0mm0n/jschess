@@ -34,10 +34,10 @@ ClassicChessArbiter.prototype.observeBoard = function(board){
 /**
  * Checks if a given move is legal
  * @param move a Move object with to and from squares.
- * @param current_player the player whose turn it is.
+ * @param player_color the colro of the player whose turn it is.
  * @returns {boolean} true if move is legal.
  */
-ClassicChessArbiter.prototype.isMoveLegal = function(move, current_player){
+ClassicChessArbiter.prototype.isMoveLegal = function(move, player_color){
     if (!this.board) {
         return false;
     }
@@ -47,6 +47,11 @@ ClassicChessArbiter.prototype.isMoveLegal = function(move, current_player){
     var from_piece = this.board.pieces_by_square[from];
     var to_piece = this.board.pieces_by_square[to];
 
+    // can't leave the board unfortunately
+    if (to.file > 8 || to.rank > 8 || to.file < 1 || to.rank < 1) {
+        return false;
+    }
+
     var path;
     if (!from_piece) {
         // can't make a move from an empty square
@@ -54,7 +59,7 @@ ClassicChessArbiter.prototype.isMoveLegal = function(move, current_player){
     }
 
     // if we are not ignoring turn orders, we need to make sure the pieces match color.
-    if (current_player != from_piece.color) {
+    if (player_color != from_piece.color) {
         return false;
     }
 
@@ -145,50 +150,24 @@ ClassicChessArbiter.prototype.kingSafeAfter = function(move) {
  * @param target_square Square object to reach.
  * @param player_color color of the player to check
  * @param is_capture if true, will check pieces' capture_path instead of normal path.
- * @returns the Square of all of the pieces that can reach target square.
+ * @returns the pieces that can reach target square.
  */
 ClassicChessArbiter.prototype.piecesCanReach = function(target_square, player_color, is_capture) {
 
-    var piece_squares = [];
+    var pieces = [];
     // iterating over the pieces.
-    for (square in this.board.pieces_by_square) {
-        if (!this.board.pieces_by_square.hasOwnProperty(square)) continue; // maybe not necessary...
+    for (key in this.board.pieces_by_square) {
+        if (!this.board.pieces_by_square.hasOwnProperty(key)) continue; // maybe not necessary...
 
-        var piece = this.board.pieces_by_square[square];
-
-        // make sure the color is the color of the player we want
-        if (piece.color !== player_color) continue;
-
-        // get the path to the target square
-        var path = is_capture? piece.getCapturePath(target_square): piece.getPath(target_square);
-
-        var blocked = false;
-        // move to next piece if the piece can't reach.
-        if (!path) continue;
-
-        for (var i=0; i<path.length - 1; i++) {
-            // for all squares on the way.
-            // if the square is occupied by a piece, we can move to the next piece.
-            if (this.board.pieces_by_square[path[i]]) {
-                blocked = true;
-                break;
-            }
-        }
-
-        // if we are not capturing, we also need to make sure the target square is empty.
-        if (!is_capture && this.board.pieces_by_square[path[path.length-1]]) {
-            blocked = true;
-            break;
-        }
-
-        // if there is an empty path, we can move.
-        if (!blocked) {
-            piece_squares.push(piece.square);
+        var piece = this.board.pieces_by_square[key];
+        move = new Move(piece.square, target_square);
+        if(this.isMoveLegal(move, player_color)) {
+            pieces.push(piece);
         }
     }
 
-    // if, after checking all the pieces, no piece has an empty path then, well, you know..
-    return piece_squares;
+
+    return pieces;
 };
 
 /**
@@ -200,26 +179,26 @@ ClassicChessArbiter.prototype.piecesCheckingKing = function(player_color) {
 
     // grab the square of the current player's king
     var king_position = this.board.kings[player_color].square;
-    var enemy_color = player_color === WHITE? BLACK : WHITE;
-    return this.piecesCanReach(king_position, enemy_color, true);
+    var enemy_color = getEnemy(player_color);
+    pieces = this.piecesCanReach(king_position, enemy_color, true);
+    return pieces;
 };
 
 /**
  * returns a special moves object if the move is a special move.
  * See utils.SpecialMove for details.
  * @param move a Move with from square and to square.
- * @param current_player the current player to play.
+ * @param player_color the current player to play.
  * @return specialMove a SpecialMove object with the details of the move.
  */
-ClassicChessArbiter.prototype.getSpecialMove = function(move, current_player) {
-    if (this.board.pieces_by_square[move.from].color !== current_player) return null;
-
+ClassicChessArbiter.prototype.getSpecialMove = function(move, player_color) {
+    if (this.board.pieces_by_square[move.from].color !== player_color) return null;
 
     var castleMove = this.getCastle(move);
     if (castleMove) return castleMove;
 
-    // var enPassant = getEnPassant(move, current_player); //TODO
-    // var promotion = getPromotion(move, current_player); //TODO
+    // var enPassant = getEnPassant(move, player_color); //TODO
+    // var promotion = getPromotion(move, player_color); //TODO
 };
 
 ClassicChessArbiter.prototype.getCastle = function(move) {
@@ -296,16 +275,85 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
 
 /**
  * returns a result if the game is over
- * @param last_move last move that was played on the board.
+ * @param next_player color of the next player to play.
  * @returns result if the game is over
  */
-ClassicChessArbiter.prototype.getResult = function(last_move) {
-    if (this.piecesCheckingKing(board.current_player)) { // TODO: find a way to refactor the current player, and remove this coupling.
-        return this.isCheckmate(last_move);
+ClassicChessArbiter.prototype.getResult = function(next_player) {
+    result = this.isCheckmate(next_player);
+    if (result) {
+        return result;
     } else {
         //return isStalemate(current_player_color); // TODO: Find how to implement this at least semi-efficiently.
     }
 };
 
-ClassicChessArbiter.prototype.isCheckmate = function(last_move) {
+/**
+ * returns a result if the position is checkmate on given player.
+ * @param on_player the player that might be checkmated.
+ */
+ClassicChessArbiter.prototype.isCheckmate = function(on_player) {
+    var king = board.kings[on_player];
+    // first we check if the king can move.
+    if (this.canKingMove(king)) {
+        return false;
+    }
+
+    // otherwise we assume the king is not mated
+    var mated = false;
+
+    // and check if there is a checking piece that can't be taken or blocked.
+    var checking_pieces = this.piecesCheckingKing(on_player);
+    if (checking_pieces.length === 0) return false;
+
+    var king_square = king.square;
+    for (var i=0; i < checking_pieces.length; i++) {
+
+        // if we can take
+        var capturing_pieces = this.piecesCanReach(checking_pieces[i].square, on_player, true);
+        if (capturing_pieces.length > 0) {
+            continue;
+        }
+
+        // this is the path the piece takes to the king, which we should block.
+        var path = checking_pieces[i].getCapturePath(king_square);
+        var can_block = false;
+
+        for (var j=0; j < path.length; j++) {
+            // thus we check if we can block each square
+            console.log(blocking_pieces);
+            if (blocking_pieces.length>0) {
+                can_block = true;
+                break;
+            }
+        }
+
+        // if we can't block the piece, it's mate
+        if (!can_block) {
+            return getEnemy(on_player);
+        }
+    }
+    return false;
+};
+
+/**
+ * helper function to check if the king can move anywhere, returns true of false
+ * @param king given piece, should be a king
+ * return true if king can move.
+ */
+ClassicChessArbiter.prototype.canKingMove = function(king) {
+    if (king.type !== KING) {
+        return false;
+    }
+
+    // checking one square in every direction and every combination, we also redundantly check
+    // if the king can stay in place, but this exits pretty early in isMoveLegal.
+    for (var i=-1; i <= 1; i++) {
+        for (var j=-1; j <= 1; j++) {
+            var move = new Move(king.square, king.square.getSquareAtOffset(i, j));
+            if (this.isMoveLegal(move, king.color)) {
+                return true;
+            }
+        }
+    }
+    return false;
 };

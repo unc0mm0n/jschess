@@ -53,6 +53,10 @@ function getImageFromTypeColor(type, color) {
     return result;
 }
 
+function getEnemy(player) {
+    return player===WHITE? BLACK : WHITE;
+}
+
 /**
  * A generator to generate pieces from given fen and return them all in an array.
  */
@@ -144,9 +148,18 @@ function Square(file, rank) {
         file = Number(file)? file : 0;
         rank = Number(rank)? rank : 0;
         return new Square(this.file + file, this.rank + rank);
-    }
-};
+    };
+}
 
+/**
+ * creates a new square object from a string of format '%d $d'
+ * @param string string in format '%d %d'
+ * returns square object
+ */
+function getSquareFromKey(string) {
+    values = string.split(' ');
+    return new Square(Number(values[0]), Number(values[1]));
+}
 /******* Move object
  * Move object to encapsulate a single game move.
  * Might be a bit of an overkill, but I prefer an array of moves over an array of arrays of squares.
