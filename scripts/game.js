@@ -21,7 +21,7 @@ var context;
 var canvas;
 var images = {};
 var board;
-var picked_piece_position = null;
+var picked_square = null;
 
 /**
  * loads all images to the dreaded global space..
@@ -79,18 +79,18 @@ function onMouseClick(event) {
     var x = event.clientX - (canvas.offsetLeft - window.pageXOffset) - canvas.inner_padding;
     var y = event.clientY - (canvas.offsetTop - window.pageYOffset) - canvas.inner_padding;
 
-    var position = getBoardPositionFromXy([x,y], canvas.board_size);
+    var square = getSquareFromXy([x,y], canvas.board_size);
 
-    if (picked_piece_position) {
-        if (board.checkLegalMove(picked_piece_position, position)) {
-            board.makeMove(picked_piece_position, position);
+    if (picked_square) {
+        if (board.checkLegalMove(picked_square, square)) {
+            board.makeMove(picked_square, square);
         }
-        picked_piece_position = null;
+        picked_square = null;
         draw();
     }
-    else if (!picked_piece_position && board.pieces_by_position[position]) {
-        picked_piece_position = position;
-        markSquare(canvas, position, board, COLOR_SELECTED_SQUARE);
+    else if (!picked_square && board.pieces_by_position[square]) {
+        picked_square = square;
+        markSquare(canvas, square, board, COLOR_SELECTED_SQUARE);
     }
 
 }

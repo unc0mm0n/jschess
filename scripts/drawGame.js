@@ -5,11 +5,12 @@
  */
 function drawBoard(canvas, board, light_color, dark_color) {
     var context = canvas.getContext(GAME_CONTEXT);
+    var square_size = canvas.board_size/8;
+
     // just iterate over every square of the chess board and fill it with some color, for now..
     for (var i=1; i <= 8; i++) {
         for (var j=1; j <= 8; j++) {
-            xy_values = getXyFromBoardPosition([i, j], canvas.board_size, canvas.inner_padding);
-            square_size = canvas.board_size/8;
+            xy_values = getXyFromSquare(new Square(i, j), canvas.board_size, canvas.inner_padding);
 
             // bottom left corner is black.. that is how chess works.
             if ( (i+j) % 2 === 1) {
@@ -50,7 +51,7 @@ function drawPiece(canvas, piece) {
     // turns it into a string.
 
     // get the coordinates on board accordingly, and calculate the current square size.
-    xy_values = getXyFromBoardPosition(piece.position ,canvas.board_size);
+    xy_values = getXyFromSquare(piece.square ,canvas.board_size);
     square_size = canvas.board_size / 8;
 
     piece_type = piece.type;
@@ -69,18 +70,18 @@ function drawPiece(canvas, piece) {
 /** marks a square with given color
  *
  */
-function markSquare(canvas, position, board, color) {
+function markSquare(canvas, square, board, color) {
     var context = canvas.getContext(GAME_CONTEXT);
     var square_size = canvas.board_size / 8;
 
-    xy_values = getXyFromBoardPosition(position, canvas.board_size, canvas.inner_padding);
+    xy_values = getXyFromSquare(square, canvas.board_size, canvas.inner_padding);
     context.fillStyle = color;
     context.fillRect(xy_values[0],
             xy_values[1],
             square_size,
             square_size);
 
-    if (board.pieces_by_position[position]) {
-        drawPiece(canvas, board.pieces_by_position[position]);
+    if (board.pieces_by_position[square]) {
+        drawPiece(canvas, board.pieces_by_position[square]);
     }
 }
