@@ -19,22 +19,22 @@ var BISHOP = 'B';
 var ROOK = 'R';
 var QUEEN = 'Q';
 
-var WHITE_KING_START = [5,1];
-var BLACK_KING_START = [5,8];
+var WHITE_KING_START = new Square(5,1);
+var BLACK_KING_START = new Square(5,8);
 
-var WHITE_ROOK_STARTS = [[1,1], [8,1]]; // NOTE THAT ROOK CLASS WILL BREAK IF THESE ARE NOT OF THE SAME LENGTH
-var BLACK_ROOK_STARTS = [[1,8], [8,8]]; // oopsy.
+var WHITE_ROOK_STARTS = [new Square(1,1), new Square(8,1)]; // NOTE THAT ROOK CLASS WILL BREAK IF THESE ARE NOT OF THE SAME LENGTH
+var BLACK_ROOK_STARTS = [new Square(8,1), new Square(8,8)]; // oopsy.
 
 /********* Piece class
  * The parent class of all piece types.
- * @param position position of the piece.
+ * @param square square of the piece.
  * @param color color of the piece, should be either 'white' or 'black'.
  * @constructor
  */
-function Piece(position, color) {
-    this.position = position;
+function Piece(square, color) {
+    this.square = square;
     this.color = color;
-//  console.log(this.constructor.name+" created at "+ this.position + " for " + this.color);
+//  console.log(this.constructor.name+" created at "+ this.square + " for " + this.color);
 }
 
 /**
@@ -59,12 +59,12 @@ Piece.prototype.get_capture_path = function(to) {
 };
 
 /**
- * Compares the position of the piece with given position
- * @returns {boolean} if the piece is at the given position.
+ * Compares the square of the piece with given square
+ * @returns {boolean} if the piece is at the given square.
  */
 
-Piece.prototype.isAt= function(position) {
-  return (this.position[0] === position[0] && this.position[1] == position[1]);
+Piece.prototype.isAt= function(square) {
+  return (this.square.equals(square));
 };
 
 /******* Pawn class
@@ -73,8 +73,8 @@ Piece.prototype.isAt= function(position) {
  */
 Pawn.prototype = Object.create(Piece.prototype);
 Pawn.prototype.constructor = Pawn;
-function Pawn(position, color) {
-    Piece.call(this, position, color);
+function Pawn(square, color) {
+    Piece.call(this, square, color);
     this.startPosition = (color === WHITE? 2 : 7);
     this.direction = (color === WHITE? 1 : -1);
 
@@ -82,20 +82,20 @@ function Pawn(position, color) {
 }
 
 Pawn.prototype.get_path = function(to) {
-    if (this.position[0] != to[0]) {
+    if (this.square.file != to.file) {
         // if we are moving to a different file, illegal move.
         return null;
     }
         // first check if we are moving one squares forward
-        if (to[1] === this.position[1] + 1*this.direction) {
-            return [[this.position[0], this.position[1] + 1*this.direction]];
+        if (to.rank === this.square.rank + 1*this.direction) {
+            return [square.getSquareAtOffset(0, 1*this.direction)];
         }
         // otherwise if it's the first move
-        else if (this.position[1] === this.startPosition) {
+        else if (this.square.rank === this.startPosition) {
             // and we are moving twice
-            if (to[1] === this.position[1] + 2*this.direction) {
-                return [[this.position[0], this.position[1] + 1*this.direction],
-                    [this.position[0], this.position[1] + 2*this.direction]];
+            if (to.rank === this.square.rank + 2*this.direction) {
+                return [square.getSquareAtOffset(0, 1*this.direction),
+                    square.getSquareAtOffset(0, 2*this.direction)];
             }
         }
         // if all else fails return null
@@ -104,12 +104,12 @@ Pawn.prototype.get_path = function(to) {
 
 
 Pawn.prototype.get_capture_path = function(to) {
-    if (Math.abs(this.position[0] - to[0]) != 1) {
-        // if we are not moving exactly one tile, illegal move.
+    if (Math.abs(this.square.file - to.file) != 1) {
+        // if we are not moving exactly one file, illegal move.
         return null;
     }
-    // if we are moving exactly one square vertically, the capture is ok.
-    if (to[1] === this.position[1] + 1*this.direction) {
+    // if we are moving exactly one square in the correct direction vertically, the capture is ok.
+    if (to.rank === this.square.rank + 1*this.direction) {
         return [to];
     }
     // if all else fails return null
@@ -122,15 +122,15 @@ Pawn.prototype.get_capture_path = function(to) {
  */
 Knight.prototype = Object.create(Piece.prototype);
 Knight.prototype.constructor = Knight;
-function Knight(position, color) {
-    Piece.call(this, position, color);
+function Knight(square, color) {
+    Piece.call(this, square, color);
 
     this.type = KNIGHT;
 }
 
 Knight.prototype.get_path = function(to) {
-    var h_movement = Math.abs(this.position[0] - to[0]);
-    var v_movement = Math.abs(this.position[1] - to[1]);
+    var h_movement = Math.abs(this.square.file - to.file);
+    var v_movement = Math.abs(this.square.rank - to.rank);
 
     if ((h_movement === 2 && v_movement === 1) || (h_movement === 1 && v_movement === 2)) {
         return [to];
@@ -144,19 +144,19 @@ Knight.prototype.get_path = function(to) {
  */
 King.prototype = Object.create(Piece.prototype);
 King.prototype.constructor = King;
-function King(position, color, has_moved) {
-    Piece.call(this, position, color);
+function King(square, color, has_moved) {
+    Piece.call(this, square, color);
 
     this.type = KING;
 
-    // checks if a special has_moved parameter was given, otherwise set it by starting position.
+    // checks if a special has_moved parameter was given, otherwise set it by starting square.
     this.has_moved = has_moved?
-            true : (!isSamePosition(position, WHITE_KING_START) && !isSamePosition(position, BLACK_KING_START));
+            true : (!square.equals(WHITE_KING_START) && !square.equals(BLACK_KING_START));
 }
 
 King.prototype.get_path = function(to) {
-    var h_movement = Math.abs(this.position[0] - to[0]);
-    var v_movement = Math.abs(this.position[1] - to[1]);
+    var h_movement = Math.abs(this.square.file - to.file);
+    var v_movement = Math.abs(this.square.rank - to.rank);
 
     if (h_movement > 1 || v_movement > 1) {
         // if we try to move more then one square in any direction, it's invalid
@@ -177,37 +177,39 @@ King.prototype.get_path = function(to) {
  */
 Bishop.prototype = Object.create(Piece.prototype);
 Bishop.prototype.constructor = Bishop;
-function Bishop(position, color) {
-    Piece.call(this, position, color);
+function Bishop(square, color) {
+    Piece.call(this, square, color);
 
     this.type = BISHOP;
 }
 
 Bishop.prototype.get_path = function(to) {
     // Only one diagonal going up (from left to right) will get each value, and the value doesn't change across the diagonal.
-    var this_main_diag = this.position[0] - this.position[1];
-    var to_main_diag = to[0] - to[1];
+    var this_main_diag = this.square.file - this.square.rank;
+    var to_main_diag = to.file - to.rank;
 
     // Only one diagonal going down will get each value, and the value again stays the same across the diagonal.
-    var this_sub_diag = this.position[0] + this.position[1];
-    var to_sub_diag = to[0] + to[1];
+    var this_sub_diag = this.square.file + this.square.rank;
+    var to_sub_diag = to.file + to.rank;
+
+    var file_distance = this.square.file - to.file;
+
+    // if we are not moving.
+    if (!file_distance) return null;
 
     var path = [];
     if (this_main_diag === to_main_diag) {
         // On the main diagonal we are going up as we go right (and down as we go left).
-        if (this.position[0] > to[0]) {
-            // this means we are to the right of the target
-            dist = this.position[0] - to[0];
-            for (var i = 1; i <= dist; i++) {
-                path.push([this.position[0] - i, this.position[1] - i]);
+        if (file_distance > 0) {
+            // this means we are to the right of the target.
+            for (var i = 1; i <= file_distance; i++) {
+                path.push(square.getSquareAtOffset(-i, -i));
             }
 
             return path;
-        } else if (this.position[0] < to[0]) {
-            // this means we are to the left of the target, we check this to make sure we are not standing still
-            dist = to[0] - this.position[0];
-            for (i = 1; i <= dist; i++) {
-                path.push([this.position[0] + i, this.position[1] + i]);
+        } else { // otherwise we are left of the target.
+            for (i = 1; i <= -file_distance; i++) {
+                path.push(square.getSquareAtOffset(i, i));
             }
 
             return path;
@@ -215,19 +217,16 @@ Bishop.prototype.get_path = function(to) {
     }
     else if (this_sub_diag === to_sub_diag) {
         // On the secondary diagonal we are going down as we go right (and up as we go left).
-        if (this.position[0] > to[0]) {
-            // this means we are to the right of the target
-            dist = this.position[0] - to[0];
-            for (var i = 1; i <= dist; i++) {
-                path.push([this.position[0] - i, this.position[1] + i]);
+        if (file_distance > 0) {
+            // this means we are to the right of the target.
+            for (i = 1; i <= file_distance; i++) {
+                path.push(square.getSquareAtOffset(-i, i));
             }
 
             return path;
-        } else if (this.position[0] < to[0]) {
-            // this means we are to the left of the target, we check this to make sure we are not standing still
-            dist = to[0] - this.position[0];
-            for (i = 1; i <= dist; i++) {
-                path.push([this.position[0] + i, this.position[1] - i]);
+        } else { // otherwise we are left of the target.
+            for (i = 1; i <= -file_distance; i++) {
+                path.push(square.getSquareAtOffset(i, -i));
             }
 
             return path;
@@ -243,19 +242,19 @@ Bishop.prototype.get_path = function(to) {
  */
 Rook.prototype = Object.create(Piece.prototype);
 Rook.prototype.constructor = Rook;
-function Rook(position, color, has_moved) {
-    Piece.call(this, position, color);
+function Rook(square, color, has_moved) {
+    Piece.call(this, square, color);
 
-    // checks if a special has_moved parameter was given, otherwise set it by starting position.
+    // checks if a special has_moved parameter was given, otherwise set it by starting square.
     if (has_moved) {
         this.has_moved = has_moved;
     } else {
         var starting_match = false;
         for (var i = 0; i < WHITE_ROOK_STARTS; i++) {
-            if (isSamePosition(position, WHITE_ROOK_STARTS[i])) {
+            if (square.equals(WHITE_ROOK_STARTS[i])) {
                 starting_match = true;
                 break;
-            } else if (isSamePosition(position, BLACK_ROOK_STARTS[i])) {
+            } else if (square.equals(BLACK_ROOK_STARTS[i])) {
                 starting_math = true;
                 break;
             }
@@ -266,40 +265,38 @@ function Rook(position, color, has_moved) {
 
 Rook.prototype.get_path = function(to) {
     // Easier than the bishop as we don't need the diagonal tricks, otherwise pretty similar
-    // Looking at the XOR of the values to make sure that we indeed move somewhere on a file or rank
-    if ( (this.position[0] === to[0]? 1:0) ^ (this.position[1] === to[1]? 1:0)) {
-        var path = [];
-        var dist;
-        if (this.position[0] > to[0]) {
-            // moving left
-            dist = this.position[0] - to[0];
-            for (var i=1; i <= dist; i++) {
-                path.push([this.position[0] - i, this.position[1]]);
-            }
-        } else if (this.position[0] < to[0]) {
-            // moving right
-            dist = to[0] - this.position[0];
-            for (i=1; i <= dist; i++) {
-                path.push([this.position[0] + i, this.position[1]]);
-            }
-        } else if (this.position[1] > to[1]) {
-            // moving down
-            dist = this.position[1] - to[1];
-            for (i = 1; i <= dist; i++) {
-                path.push([this.position[0], this.position[1] - i]);
-            }
-        } else {
-            // as we are guaranteed to have moved in a direction, it must be up.
-            dist = to[1] - this.position[1];
-            for (i = 1 ; i <= dist; i++) {
-                path.push([this.position[0], this.position[1] + i]);
-            }
-        }
+    var v_movement = this.square.rank - to.rank;
+    var h_movement = this.square.file - to.file;
 
-        return path;
+    // XOR to make sure we move either horizontally or vertically, but not both.
+    if (!((v_movement? 1 : 0) ^ (h_movement? 1 : 0))) {
+        return null;
     }
 
-    return null;
+    var path = [];
+    if (h_movement > 0) {
+        // moving left
+        for (var i=1; i <= h_movement; i++) {
+            path.push(square.getSquareAtOffset(-i, 0));
+        }
+    } else if (h_movement < 0) {
+        // moving right
+        for (i=1; i <= -h_movement; i++) {
+            path.push(square.getSquareAtOffset(i, 0));
+        }
+    } else if (v_movement > 0) {
+        // moving down
+        for (i = 1; i <= v_movement; i++) {
+            path.push(square.getSquareAtOffset(0, -i));
+        }
+    } else {
+        // as we are guaranteed to have moved in a direction, it must be up.
+        for (i = 1 ; i <= -v_movement; i++) {
+            path.push(square.getSquareAtOffset(0, i));
+        }
+    }
+
+    return path;
 };
 
 /******* Queen class
