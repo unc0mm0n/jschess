@@ -4,7 +4,6 @@
  * main file of the game.
  */
 
-var STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 var OUTER_PADDING = 30;
 var INNER_PADDING_RATIO = 0.1;
 var GAME_CONTEXT = '2d';
@@ -21,6 +20,8 @@ var context;
 var canvas;
 var images = {};
 var board;
+var arbiter;
+
 var picked_square = null;
 
 /**
@@ -83,7 +84,7 @@ function onMouseClick(event) {
 
     if (picked_square) {
         move = new Move(picked_square, square);
-        if (board.checkLegalMove(move)) {
+        if (arbiter.isMoveLegal(move, board.current_player)) {
             board.makeMove(move);
         }
         picked_square = null;
@@ -98,7 +99,10 @@ function onMouseClick(event) {
 function main() {
     loadImages();
     generatePage();
-    board = new Board(STARTING_FEN);
+
+    arbiter = new ClassicChessArbiter();
+    board = new Board(arbiter.STARTING_FEN);
+    arbiter.observeBoard(board);
 
     // resize the canvas to fill browser window dynamically
     window.addEventListener('resize', resizeCanvas, false);

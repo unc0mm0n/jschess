@@ -157,3 +157,16 @@ function Move(from, to) {
     this.to = to;
 }
 
+/******* SpecialMove object
+ * Move object to encapsulate a single game move.
+ * Might be a bit of an overkill, but I prefer an array of moves over an array of arrays of squares.
+ * @param moves array of moves to make
+ * @param removes array of squares to remove pieces from
+ * @param promotions array of pairs, piece to swap with wanted piece type
+ */
+function SpecialMove(moves, removes, promotions) {
+    this.moves = moves;
+    this.removes = removes;
+    this.promotions = promotions;
+}
+

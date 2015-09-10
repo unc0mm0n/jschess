@@ -34,7 +34,6 @@ var BLACK_ROOK_STARTS = [new Square(8,1), new Square(8,8)]; // oopsy.
 function Piece(square, color) {
     this.square = square;
     this.color = color;
-//  console.log(this.constructor.name+" created at "+ this.square + " for " + this.color);
 }
 
 /**
