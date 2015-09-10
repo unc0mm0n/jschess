@@ -43,15 +43,17 @@ function Board(fen) {
  * @param to square of the target square
  * @returns {boolean} true if the move was made successfully.
  */
-Board.prototype.makeMove = function(from, to) {
+Board.prototype.makeMove = function(move) {
+    var from = move.from;
+    var to = move.to;
     var piece = this.pieces_by_square[from];
     if (!piece || from.equals(to)) {
         return false
     }
 
     // checks if the move is a legal castle, if so does it
-    if (this.isCastle(from, to)) {
-        //this.castle(from, to);
+    if (this.isCastle(move)) {
+        //this.castle(move);
         return true;
     }
 
@@ -59,7 +61,7 @@ Board.prototype.makeMove = function(from, to) {
     // if (isEnPassant())
 
     // checks if the move is a pawn promotion, if so does it. TODO
-    // if (isPromotion(from, to))
+    // if (isPromotion(move))
 
     this.pieces_by_square[to] = piece;
     delete this.pieces_by_square[from];
@@ -72,16 +74,17 @@ Board.prototype.makeMove = function(from, to) {
     return true;
 };
 
-/** checkLegalMove(from, to)
+/** checkLegalMove(move)
  * Checks if a move is legal, using the piece at from, and moving to to.
  * Doesn't check for special rules e.g.: En Passant, Castling.
- * @param from square of the piece to move
- * @param to target square of the move
  * @returns {boolean} true if move is legal.
+ * @param move a Move object with a from and to square
  * @param ignore_turn_order if passed, checkLegalMove won't check turn order.
  */
-Board.prototype.checkLegalMove = function(from, to, ignore_turn_order) {
+Board.prototype.checkLegalMove = function(move, ignore_turn_order) {
     // getting the details of the required squares.
+    var from = move.from;
+    var to = move.to;
     var from_piece = this.pieces_by_square[from];
     var to_piece = this.pieces_by_square[to];
 
@@ -97,7 +100,7 @@ Board.prototype.checkLegalMove = function(from, to, ignore_turn_order) {
     }
 
     // check if a king is trying to castle.
-    if (this.isCastle(from, to)) {
+    if (this.isCastle(move)) {
         console.log(true);
         return true;
     }
@@ -125,17 +128,17 @@ Board.prototype.checkLegalMove = function(from, to, ignore_turn_order) {
     }
 
     // finally check if no kings were exposed.
-    return this.noChecksAfter(from, to);
+    return this.noChecksAfter(move);
 };
 
-/** noChecksAfter(from, to)
+/** noChecksAfter(move)
  * Checks if there are illegal checks in the position after a move will be made.
- * @param from square of the piece to move
- * @param to target square of the move
  * @returns {boolean} true if move is legal.
+ * @param move move object with from square and to square.
  */
-Board.prototype.noChecksAfter = function(from, to) {
-
+Board.prototype.noChecksAfter = function(move) {
+    var from = move.from;
+    var to = move.to;
     // grab the king of the player that moved.
     var player_color = this.pieces_by_square[from].color;
     var player_king = this.kings[player_color];
@@ -244,7 +247,9 @@ Board.prototype.setCastlingByFen = function(fen_data) {
  * checks if the move is a legal castle.
  * @returns true if it's a castle, and it's legal.
  */
-Board.prototype.isCastle = function (from, to) {
+Board.prototype.isCastle = function (move) {
+    var from = move.from;
+    var to = move.to;
     var from_piece = this.pieces_by_square[from];
 
     // if we are not dealing with a king or are dealing with a king that moved already, we can't castle.
@@ -258,7 +263,8 @@ Board.prototype.isCastle = function (from, to) {
     }
 
     // if the king is in check right now, we can't castle
-    if (!this.noChecksAfter(from, from)) {
+    king_in_check = new Move(from, from);
+    if (!this.noChecksAfter(king_in_check)) {
         return false;
     }
 
@@ -296,7 +302,9 @@ Board.prototype.isCastle = function (from, to) {
         if (this.pieces_by_square[path[i]]) {
             return false;
         }
-        if (!this.noChecksAfter(from, path[i])){
+        var castle_move = new Move(from, path[i]);
+
+        if (!this.noChecksAfter(castle_move)){
             return false;
         }
 

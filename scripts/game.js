@@ -82,8 +82,9 @@ function onMouseClick(event) {
     var square = getSquareFromXy([x,y], canvas.board_size);
 
     if (picked_square) {
-        if (board.checkLegalMove(picked_square, square)) {
-            board.makeMove(picked_square, square);
+        move = new Move(picked_square, square);
+        if (board.checkLegalMove(move)) {
+            board.makeMove(move);
         }
         picked_square = null;
         draw();

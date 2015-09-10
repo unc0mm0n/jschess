@@ -105,8 +105,11 @@ function generatePiece(letter, file, rank) {
 function getSquareFromArray(position_array) {
     return new Square(position_array[0], position_array[1]);
 }
+
 /******* Square class
  * square object to encapsulate all these ugly arrays.
+ * @param file file of the new square.
+ * @param rank rank of the new square.
  */
 function Square(file, rank) {
     this.file = file;
@@ -141,5 +144,16 @@ function Square(file, rank) {
         rank = Number(rank)? rank : 0;
         return new Square(this.file + file, this.rank + rank);
     }
+};
+
+/******* Move object
+ * Move object to encapsulate a single game move.
+ * Might be a bit of an overkill, but I prefer an array of moves over an array of arrays of squares.
+ * @param from A square to move from.
+ * @param to A square to move to.
+ */
+function Move(from, to) {
+    this.from = from;
+    this.to = to;
 }
 
