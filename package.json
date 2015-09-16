@@ -1,0 +1,8 @@
+{
+  "name": "chess-server",
+  "version": "0.0.1",
+  "description": "An attempt at a chess server",
+  "dependencies": {
+    "express": "^4.13.3"
+  }
+}
