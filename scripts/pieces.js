@@ -9,21 +9,7 @@
  * This will be the first file to load, thus all constants here are usable in other files.
  ****************/
 
-var WHITE = 'w';
-var BLACK = 'b';
-
-var PAWN = 'P';
-var KNIGHT = 'N';
-var KING = 'K';
-var BISHOP = 'B';
-var ROOK = 'R';
-var QUEEN = 'Q';
-
-var WHITE_KING_START = new Square(5,1);
-var BLACK_KING_START = new Square(5,8);
-
-var WHITE_ROOK_STARTS = [new Square(1,1), new Square(8,1)]; // NOTE THAT ROOK CLASS WILL BREAK IF THESE ARE NOT OF THE SAME LENGTH
-var BLACK_ROOK_STARTS = [new Square(8,1), new Square(8,8)]; // oopsy.
+var consts = require('./constants.js');
 
 /********* Piece class
  * The parent class of all piece types.
@@ -74,10 +60,10 @@ Pawn.prototype = Object.create(Piece.prototype);
 Pawn.prototype.constructor = Pawn;
 function Pawn(square, color) {
     Piece.call(this, square, color);
-    this.startPosition = (color === WHITE? 2 : 7);
-    this.direction = (color === WHITE? 1 : -1);
+    this.startPosition = (color === consts.WHITE? 2 : 7);
+    this.direction = (color === consts.WHITE? 1 : -1);
 
-    this.type = PAWN;
+    this.type = consts.PAWN;
 }
 
 Pawn.prototype.getPath = function(to) {
@@ -124,7 +110,7 @@ Knight.prototype.constructor = Knight;
 function Knight(square, color) {
     Piece.call(this, square, color);
 
-    this.type = KNIGHT;
+    this.type = consts.KNIGHT;
 }
 
 Knight.prototype.getPath = function(to) {
@@ -146,11 +132,11 @@ King.prototype.constructor = King;
 function King(square, color, has_moved) {
     Piece.call(this, square, color);
 
-    this.type = KING;
+    this.type = consts.KING;
+
 
     // checks if a special has_moved parameter was given, otherwise set it by starting square.
-    this.has_moved = has_moved?
-            true : (!square.equals(WHITE_KING_START) && !square.equals(BLACK_KING_START));
+    this.has_moved = has_moved
 }
 
 King.prototype.getPath = function(to) {
@@ -179,7 +165,7 @@ Bishop.prototype.constructor = Bishop;
 function Bishop(square, color) {
     Piece.call(this, square, color);
 
-    this.type = BISHOP;
+    this.type = consts.BISHOP;
 }
 
 Bishop.prototype.getPath = function(to) {
@@ -244,22 +230,9 @@ Rook.prototype.constructor = Rook;
 function Rook(square, color, has_moved) {
     Piece.call(this, square, color);
 
-    // checks if a special has_moved parameter was given, otherwise set it by starting square.
-    if (has_moved) {
-        this.has_moved = has_moved;
-    } else {
-        var starting_match = false;
-        for (var i = 0; i < WHITE_ROOK_STARTS; i++) {
-            if (square.equals(WHITE_ROOK_STARTS[i])) {
-                starting_match = true;
-                break;
-            } else if (square.equals(BLACK_ROOK_STARTS[i])) {
-                starting_math = true;
-                break;
-            }
-        }
-    }
-    this.type = ROOK;
+    this.has_moved = has_moved;
+
+    this.type = consts.ROOK;
 }
 
 Rook.prototype.getPath = function(to) {
@@ -307,7 +280,7 @@ Queen.prototype.constructor = Queen;
 function Queen(position, color) {
     Piece.call(this, position, color);
 
-    this.type = QUEEN;
+    this.type = consts.QUEEN;
 }
 
 Queen.prototype.getPath = function(to) {
@@ -315,4 +288,28 @@ Queen.prototype.getPath = function(to) {
     var rook_path = Rook.prototype.getPath.call(this, to);
     return rook_path? rook_path: Bishop.prototype.getPath.call(this,to);
 
+};
+
+module.exports = {
+
+
+    generate: function (type, color, file, rank) {
+        var movement = require('./movement.js');
+        var square = new movement.Square(file, rank);
+        type = type.toUpperCase();
+        switch (type) {
+            case consts.PAWN:
+                return new Pawn(square, color);
+            case consts.KNIGHT:
+                return new Knight(square, color);
+            case consts.KING:
+                return new King(square, color);
+            case consts.BISHOP:
+                return new Bishop(square, color);
+            case consts.ROOK:
+                return new Rook(square, color);
+            case consts.QUEEN:
+                return new Queen(square, color);
+        }
+    }
 };

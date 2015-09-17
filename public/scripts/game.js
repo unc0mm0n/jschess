@@ -18,6 +18,7 @@ var ASSETS = ['WKing', 'WQueen', 'WRook', 'WKnight', 'WBishop', 'WPawn',
 // dreaded globals.
 var context;
 var canvas;
+var socket = io();
 var images = {};
 var gameManager;
 
@@ -88,7 +89,8 @@ function onMouseClick(event) {
     var square = getSquareFromXy([x,y], canvas.board_size);
 
     if (picked_square) { // if we already picked a piece, move it.
-        gameManager.makeMove(new Move(picked_square, square));
+        move = new Move(picked_square, square);
+        socket.emit('move', move);
         picked_square = null;
         draw();
     } // if we haven't picked a piece yet, but we can pick a piece, do so.
@@ -112,6 +114,12 @@ function main() {
 
     var arbiter = new ClassicChessArbiter();
     gameManager = new GameManager(arbiter, arbiter.STARTING_FEN);
+
+    socket.on('move', function (move_json) {
+        move = getMoveFromJson(move_json);
+        gameManager.makeMove(move);
+        draw();
+    });
 
     // resize the canvas to fill browser window dynamically
     window.addEventListener('resize', resizeCanvas, false);

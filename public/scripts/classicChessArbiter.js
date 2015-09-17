@@ -419,3 +419,4 @@ ClassicChessArbiter.prototype.canKingMove = function(king) {
     }
     return false;
 };
+

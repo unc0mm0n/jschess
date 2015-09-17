@@ -160,6 +160,10 @@ function getSquareFromKey(string) {
     values = string.split(' ');
     return new Square(Number(values[0]), Number(values[1]));
 }
+
+function getSquareFromJson(json) {
+    return new Square(json.file, json.rank);
+}
 /******* Move object
  * Move object to encapsulate a single game move.
  * Might be a bit of an overkill, but I prefer an array of moves over an array of arrays of squares.
@@ -171,6 +175,9 @@ function Move(from, to) {
     this.to = to;
 }
 
+function getMoveFromJson(move_json) {
+    return new Move(getSquareFromJson(move_json.from), getSquareFromJson(move_json.to));
+}
 /******* SpecialMove object
  * Move object to encapsulate a single game move.
  * Might be a bit of an overkill, but I prefer an array of moves over an array of arrays of squares.
@@ -183,4 +190,3 @@ function SpecialMove(moves, removes, insertions) {
     this.removes = removes? removes : [];
     this.insertions = insertions? insertions : [];
 }
-

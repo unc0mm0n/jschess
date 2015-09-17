@@ -15,6 +15,7 @@ var COLOR_SELECTED_SQUARE = '#FBB117';
 var ASSETS = ['WKing', 'WQueen', 'WRook', 'WKnight', 'WBishop', 'WPawn',
         'BKing', 'BQueen', 'BRook', 'BKnight', 'BBishop', 'BPawn'];
 
+// UPDATED STUFF..."""""
 // dreaded globals.
 var context;
 var canvas;

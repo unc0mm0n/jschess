@@ -1,22 +1,18 @@
 /************************ board.js
  * Holds a board
  */
+var consts = require('./constants.js');
 
-var WHITE_CASTLE_KING = 'K';
-var WHITE_CASTLE_QUEEN = 'Q';
-var BLACK_CASTLE_KING = 'k';
-var BLACK_CASTLE_QUEEN = 'q';
-var NO_CASTLES = '-';
-
-function Board(fen) {
+function Board(piece_fen) {
     /******* Board class
      * Creates a chess board from given fen. This class
      * handles making moves and holding the current state of the board
      * @param fen the fen of the starting position of the board
      * @constructor
      */
-    var pieces = generatePieces(fen);
+    this.movement = require('./movement');
 
+    var pieces = this.generatePieces(piece_fen);
     // puts all pieces into the pieces_by_square object, which we
     // will be using exclusively to get piece information and manipulate the pieces.
     this.pieces_by_square = {};
@@ -25,16 +21,36 @@ function Board(fen) {
     for (var i=0; i < pieces.length; i++) {
         var piece = pieces[i];
         this.pieces_by_square[piece.square] = piece;
-        if (piece.type === KING) {
+        if (piece.type === consts.KING) {
             this.kings[piece.color] = piece;
         }
     }
-
-    var fen_data = fen.split(" ");
-
-    this.players = fen_data[1] === WHITE? [WHITE, BLACK] : [BLACK, WHITE];
-    this.setCastlingByFen(fen_data[2]);
 }
+
+/**
+ * A generator to generate pieces from given fen and return them all in an array.
+ */
+Board.prototype.generatePieces = function(fen) {
+    var pieces = require('./pieces.js');
+    var piece_array = [];
+    var ranks = fen.split('/');
+    for (var i = 0; i < ranks.length; i++) {
+
+        var squares = ranks[i];
+        var rank = 8 - i;
+        var file = 1; // keeping track of the current file.
+        for (var j = 0; j < squares.length; j++) {
+            if (Number(squares[j])) {
+                file += Number(squares[j]);
+                continue;
+            }
+            var color = (squares[j] === squares[j].toUpperCase() ? consts.WHITE : consts.BLACK);
+            piece_array.push(pieces.generate(squares[j], color, file, rank));
+            file += 1;
+        }
+    }
+    return piece_array;
+};
 
 /**
  * makes a given move on the board, doesn't check for legality!
@@ -63,7 +79,7 @@ Board.prototype.makeMove = function(move) {
  * Makes a special move, this can include a number of moves in a row,
  * removal of a number of pieces at any location, or swapping
  * pieces for different kind of pieces.
- * Check utils.SpecialMove for structure
+ * Check movement.SpecialMove for structure
  * @param specialMove a SpecialMove object containing the information for the move.
  * @returns {boolean} true if move was made successfully.
  */
@@ -86,66 +102,23 @@ Board.prototype.makeSpecialMove = function(specialMove) {
 };
 /**
  * Puts a new piece of given color on given square, will delete existing piece on the square
- * @param square
- * @param new_piece_type
+ * @param square square for the new piece
+ * @param new_piece_type type for the new piece
+ * @param new_piece_color color for the new piece
  */
 Board.prototype.insertPiece = function(square, new_piece_type, new_piece_color) {
     delete this.pieces_by_square[square];
-    this.pieces_by_square[square] = generatePiece(new_piece_type, new_piece_color, square.file, square.rank);
+    this.pieces_by_square[square] = require('./pieces').generate(new_piece_type, new_piece_color, square.file, square.rank);
 };
 /**
  * sets pieces to have moved by fen data.
- * TODO: Required massive improvement, also to facilitate Fisher random in the future
+ * TODO: Reimplement this..
  * @type {setCastlingByFen} The fen string with castling data i.e. kqKQ if none have moved.
  */
 Board.prototype.setCastlingByFen = function(fen_data) {
-    // if there are no castles, it's as easy as setting all kings to have moved.
-    if (fen_data === NO_CASTLES) {
-        for (king in this.kings) {
-            if (!this.kings.hasOwnProperty(king)) continue; // still not sure if necessary.
-            this.kings[king].has_moved = true;
-        }
-        return;
-    }
 
-    // now the complications start, to make our life easier we mark the rooks as have moved, as if both
-    // moved no castling can happen anyway. I am hard-coding the rooks starting positions as
-    // I'm out of ideas, 4 new constants just for this seems exaggerated. feel free to improve, future me or anyone else.
-    // on second thoughts, this will not work if I'll ever want to play fisher chess.. TODO: Improve this part!!
-    if (fen_data.indexOf(WHITE_CASTLE_KING) === -1) {
-        var white_kingside_rook_square = new Square(1,8);
-        // if there is no rook at the starting king side square we won't be able to castle anyway..
-        if (this.pieces_by_square[white_kingside_rook_square]) {
-            // doesn't really need to check if it's a rook or not, just set it to have moved.
-            // if it's not a rook it doesn't matter anyway, and the piece there certainly have moved..
-            this.pieces_by_square[white_kingside_rook_square].has_moved = true;
-        }
-    }
-    if (fen_data.indexOf(WHITE_CASTLE_QUEEN) === -1) {
-        var white_queenside_rook_square = new Square(1,1);
-        // if there is no rook at the starting king side square we won't be able to castle anyway..
-        if (this.pieces_by_square[white_queenside_rook_square]) {
-            // doesn't really need to check if it's a rook or not, just set it to have moved.
-            // if it's not a rook it doesn't matter anyway, and the piece there certainly have moved..
-            this.pieces_by_square[white_queenside_rook_square].has_moved = true;
-        }
-    }
-    if (fen_data.indexOf(BLACK_CASTLE_KING) === -1) {
-        var black_kingside_rook_square = new Square(8,8);
-        // if there is no rook at the starting king side square we won't be able to castle anyway..
-        if (this.pieces_by_square[black_kingside_rook_square]) {
-            // doesn't really need to check if it's a rook or not, just set it to have moved.
-            // if it's not a rook it doesn't matter anyway, and the piece there certainly have moved..
-            this.pieces_by_square[black_kingside_rook_square].has_moved = true;
-        }
-    }
-    if (fen_data.indexOf(BLACK_CASTLE_QUEEN) === -1) {
-        var black_queenside_rook_square = new Square(8,1);
-        // if there is no rook at the starting king side square we won't be able to castle anyway..
-        if (this.pieces_by_square[black_queenside_rook_square]) {
-            // doesn't really need to check if it's a rook or not, just set it to have moved.
-            // if it's not a rook it doesn't matter anyway, and the piece there certainly have moved..
-            this.pieces_by_square[black_queenside_rook_square].has_moved = true;
-        }
-    }
+};
+
+module.exports = function(fen) {
+    return new Board(fen);
 };

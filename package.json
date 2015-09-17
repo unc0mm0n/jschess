@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "description": "An attempt at a chess server",
   "dependencies": {
-    "express": "^4.13.3"
+    "engine.io-client": "automattic/engine.io-client",
+    "express": "^4.13.3",
+    "socket.io": "^1.3.6"
   }
 }

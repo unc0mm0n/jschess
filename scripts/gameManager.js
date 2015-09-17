@@ -1,6 +1,7 @@
 /**
  * Created by Yuval on 10/09/2015.
  */
+var consts = require('./constants.js');
 
 function GameManager(arbiter, fen) {
     /**
@@ -12,15 +13,18 @@ function GameManager(arbiter, fen) {
      * @constructor
      */
     this.arbiter = arbiter;
-    this.board = new Board(fen);
-    this.players = this.board.players;
+    var fen_data = fen.split(" ");
+    this.board = require('./board.js')(fen_data[0], fen_data[2]);
+    this.players = fen_data[1] === consts.WHITE? [consts.WHITE, consts.BLACK] : [consts.BLACK, consts.WHITE];
     this.game_record = [];
 
     this.arbiter.observeBoard(this.board);
 }
 
 /**
- *
+ * Attempts to make a given move, if allowed by arbiter.
+ * @param move Move object of the wanted move to make.
+ * @returns {boolean} true if a move was made.
  */
 GameManager.prototype.makeMove = function(move) {
 
@@ -35,6 +39,8 @@ GameManager.prototype.makeMove = function(move) {
         // and check for game end.
         this.result = this.arbiter.getResult(this.players[0]);
 
+        return true;
+
     } else if (this.arbiter.isMoveLegal(move, this.players[0])) { // otherwise if it's a normal move
         // do it.
         this.board.makeMove(move);
@@ -45,7 +51,9 @@ GameManager.prototype.makeMove = function(move) {
         // check if game is over.
         this.result = this.arbiter.getResult(this.players[0]);
 
+        return true;
     }
+    return false;
 };
 
 GameManager.prototype.isOver = function() {
@@ -55,4 +63,8 @@ GameManager.prototype.isOver = function() {
 GameManager.prototype.canPickSquare = function(square) {
     return this.board.pieces_by_square[square] &&
         this.board.pieces_by_square[square].color == this.players[0];
+};
+
+module.exports = function(arbiter, fen)  {
+    return new GameManager(arbiter, fen);
 };

@@ -2,9 +2,6 @@
  * Created by Yuval on 10/09/2015.
  */
 
-var RESULT_WIN = 'checkmate';
-var RESULT_DRAW = 'draw';
-
 /******* Arbiter object
  * The job of the arbiter is to rule whether moves are legal or not on a board,
  * to set up the initial position, to decide whether a game is over or not,
@@ -14,12 +11,15 @@ var RESULT_DRAW = 'draw';
  * a piece (e.g. promotion), or anything that is not just moving a piece to a square and capturing there.
  */
 
+var consts = require('./constants.js');
+
 /******* ClassicChessArbiter object
  * ClassicChessArbiter is an arbiter following the rules of classic chess without a clock.
  * Following this structure will make sure other arbiters work well with the program.
  **/
 function ClassicChessArbiter() {
     this.STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    this.movement = require('./movement');
 }
 
 /**
@@ -159,7 +159,7 @@ ClassicChessArbiter.prototype.piecesCanReach = function(target_square, player_co
         if (!this.board.pieces_by_square.hasOwnProperty(key)) continue; // maybe not necessary...
 
         var piece = this.board.pieces_by_square[key];
-        move = new Move(piece.square, target_square);
+        move = new this.movement.Move(piece.square, target_square);
         if(this.isMoveLegal(move, player_color)) {
             pieces.push(piece);
         }
@@ -175,17 +175,16 @@ ClassicChessArbiter.prototype.piecesCanReach = function(target_square, player_co
  * @returns an array of the pieces that can check the king.
  */
 ClassicChessArbiter.prototype.piecesCheckingKing = function(player_color) {
-
     // grab the square of the current player's king
     var king_position = this.board.kings[player_color].square;
-    var enemy_color = getEnemy(player_color);
+    var enemy_color = player_color === consts.WHITE? consts.BLACK : consts.WHITE;
     pieces = this.piecesCanReach(king_position, enemy_color, true);
     return pieces;
 };
 
 /**
  * returns a special moves object if the move is a special move.
- * See utils.SpecialMove for details.
+ * See movement.SpecialMove for details.
  * @param move a Move with from square and to square.
  * @param player_color the current player to play.
  * @return specialMove a SpecialMove object with the details of the move.
@@ -212,15 +211,16 @@ ClassicChessArbiter.prototype.getSpecialMove = function(move, player_color, game
  * @returns {*} a SpecialMove object if a special move was made, null otherwise.
  */
 ClassicChessArbiter.prototype.getPromotion = function(move) {
+
     var pawn = this.board.pieces_by_square[move.from];
-    if (pawn.type !== PAWN) return null;
+    if (pawn.type !== consts.PAWN) return null;
 
     if (!this.isMoveLegal(move, pawn.color)) {
         return false;
     }
     var target_rank = (pawn.direction + 1) * 3.5 + 1; // some wizardry to turn -1/1 to 1/8;
     if (move.to.rank === target_rank) {
-        return new SpecialMove([move], null, [[move.to, QUEEN, pawn.color]]); //TODO: Prompt user for piece.
+        return new this.movement.SpecialMove([move], null, [[move.to, consts.QUEEN, pawn.color]]); //TODO: Prompt user for piece.
     }
 };
 
@@ -232,7 +232,7 @@ ClassicChessArbiter.prototype.getPromotion = function(move) {
  */
 ClassicChessArbiter.prototype.getEnPassant = function(move, last_move) {
     var pawn = this.board.pieces_by_square[move.from];
-    if (pawn.type !== PAWN) return null;
+    if (pawn.type !== consts.PAWN) return null;
 
     // can't be En Passant in the first move of the game
     if (!last_move) {
@@ -260,7 +260,7 @@ ClassicChessArbiter.prototype.getEnPassant = function(move, last_move) {
         return null;
     }
 
-    return new SpecialMove([move], [last_move.to]);
+    return new this.movement.SpecialMove([move], [last_move.to]);
 };
 
 ClassicChessArbiter.prototype.getCastle = function(move) {
@@ -269,7 +269,7 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
     var king = this.board.pieces_by_square[from];
 
     // if we are not dealing with a king or are dealing with a king that moved already, we can't castle.
-    if (king.type !== KING || king.has_moved ) {
+    if (king.type !== consts.KING || king.has_moved ) {
         return null;
     }
 
@@ -289,7 +289,7 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
     // moving right means kingside castling
     if (from.file < to.file) {
         // get the king side rook.
-        rook = this.board.pieces_by_square[new Square(8, from.rank)];
+        rook = this.board.pieces_by_square[new this.movement.Square(8, from.rank)];
         // add two steps to the right to the path.
         path.push(from.getSquareAtOffset(1, 0));
         path.push(to);
@@ -298,7 +298,7 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
     } else {
         // we are moving left, castling queenside (we know that they are not equal)
         // get the queen side rook
-        rook = this.board.pieces_by_square[new Square(1, from.rank)];
+        rook = this.board.pieces_by_square[new this.movement.Square(1, from.rank)];
         // add three steps to the left to the path.
         path.push(from.getSquareAtOffset(-1, 0));
         path.push(to);
@@ -310,7 +310,7 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
         new_rook_square = from.getSquareAtOffset(-1, 0);
     }
 
-    if (!rook || rook.has_moved || rook.type != ROOK) {
+    if (!rook || rook.has_moved || rook.type != consts.ROOK) {
         // checking this is really a rook that haven't move.
         return null;
     }
@@ -321,7 +321,7 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
         if (this.board.pieces_by_square[path[i]]) {
             return null;
         }
-        var castle_move = new Move(from, path[i]);
+        var castle_move = new this.movement.Move(from, path[i]);
 
         if (!this.kingSafeAfter(castle_move)){
             return null;
@@ -329,10 +329,10 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
 
     }
 
-    var king_move = new Move(from, to);
-    var rook_move = new Move(rook.square, new_rook_square);
+    var king_move = new this.movement.Move(from, to);
+    var rook_move = new this.movement.Move(rook.square, new_rook_square);
 
-    return new SpecialMove([king_move, rook_move]);
+    return new this.movement.SpecialMove([king_move, rook_move]);
 };
 
 /**
@@ -391,7 +391,7 @@ ClassicChessArbiter.prototype.isCheckmate = function(on_player) {
 
         // if we can't block the piece, it's mate
         if (!can_block) {
-            return RESULT_WIN;
+            return consts.RESULT_WIN;
         }
     }
     return false;
@@ -403,7 +403,7 @@ ClassicChessArbiter.prototype.isCheckmate = function(on_player) {
  * return true if king can move.
  */
 ClassicChessArbiter.prototype.canKingMove = function(king) {
-    if (king.type !== KING) {
+    if (king.type !== consts.KING) {
         return false;
     }
 
@@ -411,11 +411,16 @@ ClassicChessArbiter.prototype.canKingMove = function(king) {
     // if the king can stay in place, but this exits pretty early in isMoveLegal.
     for (var i=-1; i <= 1; i++) {
         for (var j=-1; j <= 1; j++) {
-            var move = new Move(king.square, king.square.getSquareAtOffset(i, j));
+            var move = new this.movement.Move(king.square, king.square.getSquareAtOffset(i, j));
+            console.log('++++++++++++', move);
             if (this.isMoveLegal(move, king.color)) {
                 return true;
             }
         }
     }
     return false;
+};
+
+module.exports = function() {
+    return new ClassicChessArbiter();
 };
