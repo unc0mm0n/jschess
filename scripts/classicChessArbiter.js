@@ -33,7 +33,7 @@ ClassicChessArbiter.prototype.observeBoard = function(board){
 /**
  * Checks if a given move is legal
  * @param move a Move object with to and from squares.
- * @param player_color the colro of the player whose turn it is.
+ * @param player_color the color of the player whose turn it is.
  * @returns {boolean} true if move is legal.
  */
 ClassicChessArbiter.prototype.isMoveLegal = function(move, player_color){
@@ -191,6 +191,7 @@ ClassicChessArbiter.prototype.piecesCheckingKing = function(player_color) {
  * @param game_record record of the game moves, in case any special move needs to look at the past.
  */
 ClassicChessArbiter.prototype.getSpecialMove = function(move, player_color, game_record) {
+    if (!this.board.pieces_by_square[move.from]) return null;
     if (this.board.pieces_by_square[move.from].color !== player_color) return null;
 
     var castleMove = this.getCastle(move);
@@ -250,7 +251,7 @@ ClassicChessArbiter.prototype.getEnPassant = function(move, last_move) {
     var enemy_pawn = this.board.pieces_by_square[last_move.to];
 
     // if it's not a piece, or a piece but not a pawn, or a pawn that haven't moved two squares, we can't take it.
-    if (!enemy_pawn || enemy_pawn.type !== PAWN ||
+    if (!enemy_pawn || enemy_pawn.type !== consts.PAWN ||
         Math.abs(last_move.from.rank - last_move.to.rank) !== 2) {
         return null;
     }
@@ -412,7 +413,6 @@ ClassicChessArbiter.prototype.canKingMove = function(king) {
     for (var i=-1; i <= 1; i++) {
         for (var j=-1; j <= 1; j++) {
             var move = new this.movement.Move(king.square, king.square.getSquareAtOffset(i, j));
-            console.log('++++++++++++', move);
             if (this.isMoveLegal(move, king.color)) {
                 return true;
             }

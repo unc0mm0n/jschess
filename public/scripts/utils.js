@@ -190,3 +190,22 @@ function SpecialMove(moves, removes, insertions) {
     this.removes = removes? removes : [];
     this.insertions = insertions? insertions : [];
 }
+
+function getSpecialMoveFromJson(move_json) {
+    var moves = [];
+    for (var i=0; i < move_json.moves.length; i++) {
+        moves.push(getMoveFromJson(move_json.moves[i]));
+    }
+
+    var removes = [];
+    for (i=0; i < move_json.removes.length; i++) {
+        removes.push(getSquareFromJson(move_json.removes[i]));
+    }
+
+    var insertions = [];
+    for (i=0; i < move_json.insertions.length; i++) {
+        insertions.push([getSquareFromJson(move_json.insertions[i][0]), move_json.insertions[i][1], move_json.insertions[i][2]]);
+    }
+
+    return new SpecialMove(moves, removes, insertions);
+}

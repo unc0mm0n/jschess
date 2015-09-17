@@ -9,6 +9,8 @@ module.exports = {
     ROOK: 'R',
     QUEEN: 'Q',
 
+    MOVE: 'move',
+    SPECIAL_MOVE: 'move',
 
     RESULT_WIN : 'checkmate',
     RESULT_DRAW : 'draw',

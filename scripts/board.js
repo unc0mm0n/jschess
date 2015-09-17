@@ -119,6 +119,35 @@ Board.prototype.setCastlingByFen = function(fen_data) {
 
 };
 
+/**
+ *
+ * @returns {*} a fen string of the pieces.
+ */
+Board.prototype.getPieceFen = function() {
+    var result_str = '';
+    var empty;
+    for (var i=1; i<=8; i++) {
+        empty = 0;
+        for (var j=1; j<=8; j++) {
+            square = new this.movement.Square(j, 9-i);
+            if (this.pieces_by_square[square]) {
+                var to_lower = this.pieces_by_square[square].color === consts.BLACK;
+                if (empty) {result_str += String(empty);}
+                result_str +=
+                    to_lower?
+                        this.pieces_by_square[square].type.toLowerCase() :
+                        this.pieces_by_square[square].type;
+                empty = 0;
+            } else {
+                empty += 1;
+            }
+        }
+        if (empty) {result_str += String(empty);}
+        if (i != 8) {result_str += '/';}
+    }
+    return result_str;
+};
+
 module.exports = function(fen) {
     return new Board(fen);
 };

@@ -39,7 +39,7 @@ GameManager.prototype.makeMove = function(move) {
         // and check for game end.
         this.result = this.arbiter.getResult(this.players[0]);
 
-        return true;
+        return specialMove;
 
     } else if (this.arbiter.isMoveLegal(move, this.players[0])) { // otherwise if it's a normal move
         // do it.
@@ -51,7 +51,7 @@ GameManager.prototype.makeMove = function(move) {
         // check if game is over.
         this.result = this.arbiter.getResult(this.players[0]);
 
-        return true;
+        return consts.MOVE;
     }
     return false;
 };
@@ -63,6 +63,11 @@ GameManager.prototype.isOver = function() {
 GameManager.prototype.canPickSquare = function(square) {
     return this.board.pieces_by_square[square] &&
         this.board.pieces_by_square[square].color == this.players[0];
+};
+
+GameManager.prototype.getFen = function() {
+    var piece_fen = this.board.getPieceFen();
+    return piece_fen + ' ' + this.players[0] + ' ' + '-';
 };
 
 module.exports = function(arbiter, fen)  {

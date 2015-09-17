@@ -20,7 +20,7 @@ var context;
 var canvas;
 var socket = io();
 var images = {};
-var gameManager;
+var board;
 
 var picked_square = null;
 
@@ -73,7 +73,7 @@ function draw() {
     context.fillStyle = '#996633';
     context.fillRect(0,0,canvas.width, canvas.height);
 
-    drawBoard(canvas, gameManager.board, COLOR_LIGHT_SQUARES, COLOR_DARK_SQUARES);
+    drawBoard(canvas, board, COLOR_LIGHT_SQUARES, COLOR_DARK_SQUARES);
 }
 
 /**
@@ -94,37 +94,42 @@ function onMouseClick(event) {
         picked_square = null;
         draw();
     } // if we haven't picked a piece yet, but we can pick a piece, do so.
-    else if (!picked_square && gameManager.canPickSquare(square)) {
+    else if (!picked_square && board.pieces_by_square[square]) {
         picked_square = square;
-        markSquare(canvas, square, gameManager.board, COLOR_SELECTED_SQUARE);
+        markSquare(canvas, square, board, COLOR_SELECTED_SQUARE);
     }
-    if (gameManager.isOver()) updateGameOver();
 }
 /**
  * updates the result to the screen.
  */
 function updateGameOver() {
-    window.alert(gameManager.result);
-    console.log(gameManager.game_record);
 }
 
 function main() {
-    loadImages();
-    generatePage();
 
-    var arbiter = new ClassicChessArbiter();
-    gameManager = new GameManager(arbiter, arbiter.STARTING_FEN);
+    socket.on('initialize', function(fen) {
+        board = new Board(fen);
+
+        loadImages();
+        generatePage();
+
+        // resize the canvas to fill browser window dynamically
+        window.addEventListener('resize', resizeCanvas, false);
+        canvas.addEventListener('mousedown', onMouseClick, false);
+        resizeCanvas();
+    });
 
     socket.on('move', function (move_json) {
         move = getMoveFromJson(move_json);
-        gameManager.makeMove(move);
+        board.makeMove(move);
         draw();
     });
 
-    // resize the canvas to fill browser window dynamically
-    window.addEventListener('resize', resizeCanvas, false);
-    canvas.addEventListener('mousedown', onMouseClick, false);
-    resizeCanvas();
+    socket.on('specialMove', function (move_json) {
+        move = getSpecialMoveFromJson(move_json);
+        board.makeSpecialMove(move);
+        draw();
+    });
 }
 
 document.addEventListener('load', main());
