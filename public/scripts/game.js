@@ -57,6 +57,7 @@ function generatePage() {
  * just something to make sure the canvas stays relevant.
  */
 function resizeCanvas() {
+    console.log('resize job')
     var size = Math.min(window.innerWidth, window.innerHeight) - OUTER_PADDING;
     canvas.width = size;
     canvas.height = size;
@@ -82,7 +83,7 @@ function draw() {
  * @param event the mouse event.
  */
 function onMouseClick(event) {
-
+    console.log('mouse event initiated')
     var x = event.clientX - (canvas.offsetLeft - window.pageXOffset) - canvas.inner_padding;
     var y = event.clientY - (canvas.offsetTop - window.pageYOffset) - canvas.inner_padding;
 
@@ -90,7 +91,8 @@ function onMouseClick(event) {
 
     if (picked_square) { // if we already picked a piece, move it.
         move = new Move(picked_square, square);
-        socket.emit('move', move);
+        console.log('emitting ', move, socket.id)
+        socket.emit('move', {move: move, player_id: socket.id});
         picked_square = null;
         draw();
     } // if we haven't picked a piece yet, but we can pick a piece, do so.
@@ -108,6 +110,7 @@ function updateGameOver() {
 function main() {
 
     socket.on('initialize', function(fen) {
+        console.log('game started, id: ', socket.id)
         board = new Board(fen);
 
         loadImages();

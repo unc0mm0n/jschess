@@ -12,16 +12,20 @@
  */
 
 var consts = require('./constants.js');
-
+var STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 /******* ClassicChessArbiter object
  * ClassicChessArbiter is an arbiter following the rules of classic chess without a clock.
  * Following this structure will make sure other arbiters work well with the program.
  **/
 function ClassicChessArbiter() {
-    this.STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    this.STARTING_FEN = STARTING_FEN;
+
     this.movement = require('./movement');
 }
 
+ClassicChessArbiter.prototype.getColors = function() {
+    return [consts.WHITE, consts.BLACK]
+}
 /**
  * attaches a board object for the arbiter to observe, all rulings will be based on attached board.
  * @param board board to observe.
@@ -37,7 +41,12 @@ ClassicChessArbiter.prototype.observeBoard = function(board){
  * @returns {boolean} true if move is legal.
  */
 ClassicChessArbiter.prototype.isMoveLegal = function(move, player_color){
+
     if (!this.board) {
+        return false;
+    }
+
+    if (this.last_moving_player && player_color === this.last_moving_player) {
         return false;
     }
     // getting the details of the required squares.
@@ -341,8 +350,8 @@ ClassicChessArbiter.prototype.getCastle = function(move) {
  * @param next_player color of the next player to play.
  * @returns result if the game is over
  */
-ClassicChessArbiter.prototype.getResult = function(next_player) {
-    result = this.isCheckmate(next_player);
+ClassicChessArbiter.prototype.getResult = function(current_player_color) {
+    result = this.isCheckmate(current_player_color == consts.WHITE ? consts.BLACK : consts.WHITE);
     if (result) {
         return result;
     } else {
