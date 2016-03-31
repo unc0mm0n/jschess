@@ -41,6 +41,7 @@ function loadImages() {
 function generatePage() {
     // create a canvas populated inside a div
     var body = document.getElementById('body');
+    body.innerHTML='';
     var gameArea = document.createElement('div');
     gameArea.setAttribute('id', 'gameArea');
 
@@ -57,7 +58,6 @@ function generatePage() {
  * just something to make sure the canvas stays relevant.
  */
 function resizeCanvas() {
-    console.log('resize job')
     var size = Math.min(window.innerWidth, window.innerHeight) - OUTER_PADDING;
     canvas.width = size;
     canvas.height = size;
@@ -83,7 +83,6 @@ function draw() {
  * @param event the mouse event.
  */
 function onMouseClick(event) {
-    console.log('mouse event initiated')
     var x = event.clientX - (canvas.offsetLeft - window.pageXOffset) - canvas.inner_padding;
     var y = event.clientY - (canvas.offsetTop - window.pageYOffset) - canvas.inner_padding;
 
@@ -91,7 +90,6 @@ function onMouseClick(event) {
 
     if (picked_square) { // if we already picked a piece, move it.
         move = new Move(picked_square, square);
-        console.log('emitting ', move, socket.id)
         socket.emit('move', {move: move, player_id: socket.id});
         picked_square = null;
         draw();
@@ -108,9 +106,7 @@ function updateGameOver() {
 }
 
 function main() {
-
     socket.on('initialize', function(fen) {
-        console.log('game started, id: ', socket.id)
         board = new Board(fen);
 
         loadImages();
@@ -120,6 +116,7 @@ function main() {
         window.addEventListener('resize', resizeCanvas, false);
         canvas.addEventListener('mousedown', onMouseClick, false);
         resizeCanvas();
+        console.log(board);
     });
 
     socket.on('move', function (move_json) {

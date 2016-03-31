@@ -110,14 +110,6 @@ Board.prototype.insertPiece = function(square, new_piece_type, new_piece_color) 
     delete this.pieces_by_square[square];
     this.pieces_by_square[square] = require('./pieces').generate(new_piece_type, new_piece_color, square.file, square.rank);
 };
-/**
- * sets pieces to have moved by fen data.
- * TODO: Reimplement this..
- * @type {setCastlingByFen} The fen string with castling data i.e. kqKQ if none have moved.
- */
-Board.prototype.setCastlingByFen = function(fen_data) {
-
-};
 
 /**
  *

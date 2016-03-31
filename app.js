@@ -17,14 +17,13 @@ app.get('/', function (req, res) {
 
 io.on('connection', function(socket){
     connected_users.push(socket.id);
-    console.log('user connected: ', socket.id);
-    if (connected_users.length >= 2) {
-        if (!gameManager) {
-            gameManager = require('./scripts/gameManager.js')(arbiter, [connected_users[0], connected_users[1]], arbiter.STARTING_FEN);
-        }
-
-        io.emit('initialize', gameManager.getFen());
-    
+    console.log('user connected: ', socket.id, connected_users);
+    if (connected_users.length == 2) {
+        gameManager = require('./scripts/gameManager.js')(arbiter, [connected_users[0], connected_users[1]], arbiter.STARTING_FEN);
+        io.emit('initialize', gameManager.getFen());    
+    }
+    if (connected_users.length > 2) {
+        io.to(socket.id).emit('initialize', gameManager.getFen());
     }
     socket.on('move', function(move_json) {
         if(!gameManager) {
@@ -40,6 +39,15 @@ io.on('connection', function(socket){
             io.emit('specialMove', move_type);
         }
      });
+
+    socket.on('disconnect', function() {
+        console.log(socket.id, ' disconnected')
+        connected_users.splice(connected_users.indexOf(socket.id), 1);
+        if (gameManager.players[socket.id] && connected_users.length >= 2) {
+            gameManager = require('./scripts/gameManager.js')(arbiter, [connected_users[0], connected_users[1]], arbiter.STARTING_FEN);
+            io.emit('initialize', gameManager.getFen()); 
+        }
+    })
 });
 
 
