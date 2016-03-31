@@ -1,7 +1,19 @@
 {
   "name": "chess-server",
-  "version": "0.0.1",
+  "version": "0.1.1",
+  "main": "app.js",
+  
   "description": "An attempt at a chess server",
+  "author": "Wyborski Yuval",
+
+  "engines": {
+    "node": "4.4.1",
+    "npm": "2.14.20"
+    },
+  "scripts": {
+    "start": "node app.js"
+  },
+
   "dependencies": {
     "engine.io-client": "automattic/engine.io-client",
     "express": "^4.13.3",

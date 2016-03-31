@@ -6,6 +6,7 @@ var io = require('socket.io')(http);
 
 var game_path = __dirname + '/public/game.html';
 var connected_users = [];
+app.set('port', (process.env.PORT || 8080));
 
 // for game.html file to be able to access resources
 app.use(express.static(__dirname + '/public'));
@@ -58,7 +59,5 @@ var movement = require('./scripts/movement.js');
 var arbiter = require('./scripts/classicChessArbiter.js')();
 var gameManager;
 
-
-
-console.log('listening..');
-http.listen(8080);
+http.listen(app.get('port'));
+console.log('listening on port ', app.get('port'));
