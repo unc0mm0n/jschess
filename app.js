@@ -28,7 +28,6 @@ io.on('connection', function(socket){
 
         for(var i=0; i < gameManager.players.length; i++) {
             var player_id=gameManager.players[i];
-            console.log(clients[player_id].id, player_id);
             clients[player_id].emit('color', gameManager.colors_by_player[player_id]);
         }
         io.to('1').emit('initialize', gameManager.getFen());
@@ -44,7 +43,6 @@ io.on('connection', function(socket){
         
         var move =  movement.getMoveFromJson(move_json.move);
         var move_type = gameManager.makeMove(move, move_json.player_id);
-        console.log('move recieved: ', move_type)
         if (move_type === consts.MOVE) {
             io.emit('move', move);
         } else if (move_type) {

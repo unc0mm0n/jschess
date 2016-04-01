@@ -41,7 +41,7 @@ ClassicChessArbiter.prototype.observeBoard = function(board){
  * @returns {boolean} true if move is legal.
  */
 ClassicChessArbiter.prototype.isMoveLegal = function(move, player_color){
-
+    console.log('checking move ', move, ' for player ', player_color);
     if (!this.board) {
         return false;
     }
