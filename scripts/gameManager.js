@@ -3,22 +3,26 @@
  */
 var consts = require('./constants.js');
 
-function GameManager(arbiter, player_ids, fen) {
+function GameManager(game_id, arbiter, player_ids, fen) {
     /**
      * This object manages an actual game, in charge of recording the game,
      * passing the moves to the arbiter and the board with all required
      * data, and generating info for the server.
-     * @param fen
-     * @param arbiter
+     * @param fen starting fen for the game, if none is given arbiter.STARTING_FEN is called.
+     * @param arbiter rules arbiter for the game
      * @param players Array of players in order of play (as dictated by the arbiter).
      * @constructor
      */
     this.arbiter = arbiter;
+    if (!fen) {
+        fen = arbiter.STARTING_FEN;
+    }
     var fen_data = fen.split(" ");
     this.board = require('./board.js')(fen_data[0], fen_data[2]);
-    this.players = this.pairColors(player_ids);
+    this.players = player_ids;
+    this.colors_by_player = this.pairColors(player_ids);
     this.game_record = [];
-
+    this.game_id = game_id;
     this.arbiter.observeBoard(this.board);
 }
 
@@ -28,7 +32,7 @@ function GameManager(arbiter, player_ids, fen) {
  * @returns {boolean} true if a move was made.
  */
 GameManager.prototype.makeMove = function(move, player_id) {
-    var player = this.players[player_id];
+    var player = this.colors_by_player[player_id];
 
     if(!player) {
         return false;
@@ -47,7 +51,7 @@ GameManager.prototype.makeMove = function(move, player_id) {
 
         return specialMove;
 
-    } else if (this.arbiter.isMoveLegal(move, this.players[player_id])) { // otherwise if it's a normal move
+    } else if (this.arbiter.isMoveLegal(move, this.colors_by_player[player_id])) { // otherwise if it's a normal move
         // do it.
         this.board.makeMove(move);
         // record it.
@@ -77,9 +81,9 @@ GameManager.prototype.isOver = function() {
 
 GameManager.prototype.getFen = function(current_player_id) {
     var piece_fen = this.board.getPieceFen();
-    return piece_fen + ' ' + this.players[current_player_id] + ' ' + '-';
+    return piece_fen + ' ' + this.colors_by_player[current_player_id] + ' ' + '-';
 };
 
-module.exports = function(arbiter, players, fen)  {
-    return new GameManager(arbiter, players, fen);
+module.exports = function(game_id, arbiter, players, fen)  {
+    return new GameManager(game_id, arbiter, players, fen);
 };

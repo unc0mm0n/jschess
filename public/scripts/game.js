@@ -130,6 +130,10 @@ function main() {
         board.makeSpecialMove(move);
         draw();
     });
+
+    socket.on('color', function(color) {
+        document.title = color;
+    })
 }
 
 document.addEventListener('load', main());
