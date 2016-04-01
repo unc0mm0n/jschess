@@ -134,6 +134,10 @@ function main() {
 
     socket.on('color', function(color) {
         document.title = color;
+        if (!color) {
+            document.title = 'observer'
+        }
+        document.title += '   -   ' + socket.id;
     })
 }
 

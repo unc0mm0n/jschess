@@ -35,12 +35,15 @@ GameManager.prototype.makeMove = function(move, player_id) {
     var player = this.colors_by_player[player_id];
 
     if(!player) {
+        console.log('invalid player ',player_id);
+        console.log(this.colors_by_player);
         return false;
     }
 
     var specialMove = this.arbiter.getSpecialMove(move, player, this.game_record);
 
     if (specialMove) { // first we check if it's a special move.
+        console.log('is special')
         this.board.makeSpecialMove(specialMove);
         // record it
         this.game_record.push(specialMove);
@@ -50,7 +53,7 @@ GameManager.prototype.makeMove = function(move, player_id) {
         this.arbiter.last_moving_player = player;
 
         return specialMove;
-
+    console.log(' checking normal move legality')
     } else if (this.arbiter.isMoveLegal(move, this.colors_by_player[player_id])) { // otherwise if it's a normal move
         // do it.
         this.board.makeMove(move);

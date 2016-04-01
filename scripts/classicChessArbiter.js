@@ -19,7 +19,7 @@ var STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
  **/
 function ClassicChessArbiter() {
     this.STARTING_FEN = STARTING_FEN;
-
+    this.last_moving_player = consts.BLACK;
     this.movement = require('./movement');
 }
 
@@ -41,7 +41,6 @@ ClassicChessArbiter.prototype.observeBoard = function(board){
  * @returns {boolean} true if move is legal.
  */
 ClassicChessArbiter.prototype.isMoveLegal = function(move, player_color){
-    console.log('checking move ', move, ' for player ', player_color);
     if (!this.board) {
         return false;
     }

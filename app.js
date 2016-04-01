@@ -4,9 +4,13 @@ var express = require('express'),
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+var HEROKU_PREFIX = '/#';
+
 var game_path = __dirname + '/public/game.html';
 var users_queue = [];
 var clients = {};
+var next_id = 1;
+
 app.set('port', (process.env.PORT || 8080));
 
 // for game.html file to be able to access resources
@@ -18,26 +22,23 @@ app.get('/', function (req, res) {
 });
 
 io.on('connection', function(socket){
-    users_queue.push(socket.id);
-    clients[socket.id] = socket;
-    console.log('user connected: ', socket.id, users_queue);
-    if (users_queue.length == 2) {
-        gameManager = require('./scripts/gameManager.js')(1, arbiter, [users_queue[0], users_queue[1]]);
-        clients[users_queue[0]].join('1');
-        clients[users_queue[1]].join('1');
 
-        for(var i=0; i < gameManager.players.length; i++) {
-            var player_id=gameManager.players[i];
-            clients[player_id].emit('color', gameManager.colors_by_player[player_id]);
-        }
-        io.to('1').emit('initialize', gameManager.getFen());
+    var id = remove_prefix(socket.id, HEROKU_PREFIX);
+    users_queue.push(id);
+    clients[id] = socket;
+
+    console.log('user connected: ', id);
+    if (users_queue.length == 2) {
+       start_game(next_id, arbiter, users_queue);
     }
     if (users_queue.length > 2) {
         io.to(socket.id).emit('initialize', gameManager.getFen());
-        io.to(socket.id).emit('color', "observer");
+        io.to(socket.id).emit('color', undefined);
     }
+
     socket.on('move', function(move_json) {
         if(!gameManager) {
+            console.log('game manager not found');
             return
         }
         
@@ -51,14 +52,37 @@ io.on('connection', function(socket){
      });
 
     socket.on('disconnect', function() {
-        console.log(socket.id, ' disconnected')
-        users_queue.splice(users_queue.indexOf(socket.id), 1);
-        if (gameManager.colors_by_player[socket.id] && users_queue.length >= 2) {
-            gameManager = require('./scripts/gameManager.js')(arbiter, [users_queue[0], users_queue[1]], arbiter.STARTING_FEN);
-            io.emit('initialize', gameManager.getFen()); 
+        id = remove_prefix(socket.id, HEROKU_PREFIX);
+        console.log(id, ' disconnected')
+        users_queue.splice(users_queue.indexOf(id), 1);
+        if (gameManager.colors_by_player[id] && users_queue.length >= 2) {
+            arbiter = require('./scripts/classicChessArbiter.js')();
+            next_id++;
+            start_game(next_id, arbiter, users_queue)
         }
     })
 });
+
+function start_game(game_id, arbiter, players) {
+        gameManager = require('./scripts/gameManager.js')(game_id, arbiter, players);
+        console.log('new game started: ', gameManager.players)
+        for (var i=0; i < players.length; i++) {
+            clients[players[i]].join(game_id);
+            clients[players[i]].emit('color', gameManager.colors_by_player[players[i]]);
+        }
+
+        io.to(game_id).emit('initialize', gameManager.getFen());
+}
+/**
+* removes prefix from string if present
+*/
+function remove_prefix(string, prefix) {
+    var s = prefix.length;
+    if (string.substring(0, s) === prefix) {
+        return string.substring(s);
+    }
+    return string;
+}
 
 var consts = require('./scripts/constants.js');
 var movement = require('./scripts/movement.js');
