@@ -91,7 +91,7 @@ function onMouseClick(event) {
     if (picked_square) { // if we already picked a piece, move it.
         move = new Move(picked_square, square);
         console.log('emitting move ', move, ' for id ',socket.id);
-        socket.emit('move', {move: move, player_id: socket.id});
+        socket.emit('move', move);
         picked_square = null;
         draw();
     } // if we haven't picked a piece yet, but we can pick a piece, do so.

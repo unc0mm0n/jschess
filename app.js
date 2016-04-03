@@ -42,8 +42,8 @@ io.on('connection', function(socket){
             return
         }
         
-        var move =  movement.getMoveFromJson(move_json.move);
-        var move_type = gameManager.makeMove(move, move_json.player_id);
+        var move =  movement.getMoveFromJson(move_json);
+        var move_type = gameManager.makeMove(move, this.id);
         if (move_type === consts.MOVE) {
             io.emit('move', move);
         } else if (move_type) {
