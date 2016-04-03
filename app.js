@@ -4,8 +4,6 @@ var express = require('express'),
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-var HEROKU_PREFIX = '/#';
-
 var game_path = __dirname + '/public/game.html';
 var users_queue = [];
 var clients = {};
@@ -23,11 +21,11 @@ app.get('/', function (req, res) {
 
 io.on('connection', function(socket){
 
-    var id = remove_prefix(socket.id, HEROKU_PREFIX);
-    users_queue.push(id);
-    clients[id] = socket;
+    users_queue.push(socket.id);
+    clients[socket.id] = socket;
 
-    console.log('user connected: ', id);
+    console.log('user connected: ', socket.id);
+
     if (users_queue.length == 2) {
        start_game(next_id, arbiter, users_queue);
     }
@@ -52,10 +50,10 @@ io.on('connection', function(socket){
      });
 
     socket.on('disconnect', function() {
-        id = remove_prefix(socket.id, HEROKU_PREFIX);
-        console.log(id, ' disconnected')
-        users_queue.splice(users_queue.indexOf(id), 1);
-        if (gameManager.colors_by_player[id] && users_queue.length >= 2) {
+
+        console.log(this.id, ' disconnected')
+        users_queue.splice(users_queue.indexOf(this.id), 1);
+        if (gameManager.colors_by_player[this.id] && users_queue.length >= 2) {
             arbiter = require('./scripts/classicChessArbiter.js')();
             next_id++;
             start_game(next_id, arbiter, users_queue)
@@ -72,16 +70,6 @@ function start_game(game_id, arbiter, players) {
         }
 
         io.to(game_id).emit('initialize', gameManager.getFen());
-}
-/**
-* removes prefix from string if present
-*/
-function remove_prefix(string, prefix) {
-    var s = prefix.length;
-    if (string.substring(0, s) === prefix) {
-        return string.substring(s);
-    }
-    return string;
 }
 
 var consts = require('./scripts/constants.js');
