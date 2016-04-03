@@ -5,8 +5,10 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 var game_path = __dirname + '/public/game.html';
+
 var users_queue = [];
 var clients = {};
+var games = {};
 var next_id = 1;
 
 app.set('port', (process.env.PORT || 8080));
@@ -26,56 +28,70 @@ io.on('connection', function(socket){
 
     console.log('user connected: ', socket.id);
 
-    if (users_queue.length == 2) {
-       start_game(next_id, arbiter, users_queue);
-    }
-    if (users_queue.length > 2) {
-        io.to(socket.id).emit('initialize', gameManager.getFen());
-        io.to(socket.id).emit('color', undefined);
+    while (users_queue.length >= 2) {
+        var arbiter = require('./scripts/classicChessArbiter.js')();
+        games[next_id] = get_new_game(next_id, arbiter, users_queue.splice(0,2));
+        next_id++;
     }
 
     socket.on('move', function(move_json) {
-        if(!gameManager) {
-            console.log('game manager not found');
-            return
-        }
         
         var move =  movement.getMoveFromJson(move_json);
-        var move_type = gameManager.makeMove(move, this.id);
+        var move_type = games[this.game_id].makeMove(move, this.id);
         if (move_type === consts.MOVE) {
-            io.emit('move', move);
+            io.in(this.game_id).emit('move', move);
         } else if (move_type) {
-            io.emit('specialMove', move_type);
+            io.in(this.game_id).emit('specialMove', move_type);
         }
      });
 
     socket.on('disconnect', function() {
 
-        console.log(this.id, ' disconnected')
-        users_queue.splice(users_queue.indexOf(this.id), 1);
-        if (gameManager.colors_by_player[this.id] && users_queue.length >= 2) {
-            arbiter = require('./scripts/classicChessArbiter.js')();
-            next_id++;
-            start_game(next_id, arbiter, users_queue)
+        if (this.game_id && games[this.game_id].colors_by_player[this.id]) {
+            for (var i=0; i < games[this.game_id].players.length; i++) {
+                if (games[this.game_id].players[i] !== this.id) {
+                    users_queue.push(games[this.game_id].players[i])
+                }
+            }
+            console.log('user in game disconnected, ',this.id, users_queue);
+        } else {
+            users_queue.splice(users_queue.indexOf(this.id), 1);
+        }
+
+        while (users_queue.length >= 2) {
+           var arbiter = require('./scripts/classicChessArbiter.js')();
+           games[next_id] = get_new_game(next_id, arbiter, users_queue.splice(0,2));
+           next_id++;
         }
     })
 });
 
-function start_game(game_id, arbiter, players) {
-        gameManager = require('./scripts/gameManager.js')(game_id, arbiter, players);
-        console.log('new game started: ', gameManager.players)
-        for (var i=0; i < players.length; i++) {
-            clients[players[i]].join(game_id);
-            clients[players[i]].emit('color', gameManager.colors_by_player[players[i]]);
+function get_new_game(game_id, arbiter, players) {
+
+    var gameManager = require('./scripts/gameManager.js')(arbiter, players);
+
+    console.log('new game started: ', gameManager.players)
+    for (var i=0; i < players.length; i++) {
+        
+        socket = clients[players[i]];
+        
+        if (!socket.games) {
+            socket.games = [game_id]
+        } else {
+            socket.games.push(game_id)
         }
 
-        io.to(game_id).emit('initialize', gameManager.getFen());
+        socket.join(game_id);
+        socket.game_id = game_id;
+        socket.emit('color', gameManager.colors_by_player[players[i]]);
+    }
+
+    io.to(game_id).emit('initialize', gameManager.getFen());
+    return gameManager
 }
 
 var consts = require('./scripts/constants.js');
 var movement = require('./scripts/movement.js');
-var arbiter = require('./scripts/classicChessArbiter.js')();
-var gameManager;
 
 http.listen(app.get('port'));
 console.log('listening on port ', app.get('port'));

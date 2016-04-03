@@ -3,7 +3,7 @@
  */
 var consts = require('./constants.js');
 
-function GameManager(game_id, arbiter, player_ids, fen) {
+function GameManager(arbiter, player_ids, fen) {
     /**
      * This object manages an actual game, in charge of recording the game,
      * passing the moves to the arbiter and the board with all required
@@ -17,12 +17,13 @@ function GameManager(game_id, arbiter, player_ids, fen) {
     if (!fen) {
         fen = arbiter.STARTING_FEN;
     }
+    
     var fen_data = fen.split(" ");
     this.board = require('./board.js')(fen_data[0], fen_data[2]);
     this.players = player_ids;
     this.colors_by_player = this.pairColors(player_ids);
     this.game_record = [];
-    this.game_id = game_id;
+    
     this.arbiter.observeBoard(this.board);
 }
 
@@ -87,6 +88,6 @@ GameManager.prototype.getFen = function(current_player_id) {
     return piece_fen + ' ' + this.colors_by_player[current_player_id] + ' ' + '-';
 };
 
-module.exports = function(game_id, arbiter, players, fen)  {
-    return new GameManager(game_id, arbiter, players, fen);
+module.exports = function(arbiter, players, fen)  {
+    return new GameManager(arbiter, players, fen);
 };
