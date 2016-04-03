@@ -1,6 +1,6 @@
 module.exports = {
-    WHITE: 'w',
-    BLACK: 'b',
+    WHITE: 'white',
+    BLACK: 'black',
 
     PAWN: 'P',
     KNIGHT: 'N',

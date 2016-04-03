@@ -133,7 +133,7 @@ function main() {
     });
 
     socket.on('color', function(color) {
-        document.title = color;
+        document.title = "Chess server! Playing " + color;
         if (!color) {
             document.title = 'observer'
         }
